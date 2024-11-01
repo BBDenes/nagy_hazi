@@ -1,57 +1,58 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include "debugmalloc.h"
 
-int mainMenu(void);
-void newTable(void);
-void manageOrder(void);
-void close(void);
+typedef struct Rendeles{
+    char *termekek;
+    int osszeg;
+
+}Rendeles;
+
+typedef struct Asztal{
+    int ferohely, x, y, szel, mag; //az asztal férőhelyeinek száma, az alaprajzon elfoglalt bal felső sarok x, y koordinátája és az asztal fizikai méretei
+    Rendeles *rendelesek;
+    
+}Asztal;
+
+int fomenu(void);
+void ujAsztal(void);
+void rendelesMngmt(void);
+void zaras(void);
+void fajlBeolvas(Asztal *asztalok, char *alaprajz);
 
 int main(void){
-    int choice = mainMenu();
+    //fajlBeolvas(); coming soon
+    Asztal asztalok;
+    int choice = fomenu();
 
     switch (choice){
         case 1:
-            //newTable();
+            //ujAsztal();
         break;
         case 2:
-           //manageOrder();
+           //rendelesMngmt();
         break;
         case 3:
-            //listOrders();
+            //rendlesLista();
         break;
         case 4:
-            //close();
+            //zaras();
         break;
         default:
         break;
     }
+    return 0;
 }
 
-int mainMenu(void){
+int fomenu(void){
     int c;
-    bool success = false;
     printf("------Fomenu - A megfelelo sorszam beirasaval lehet valasztani. ------ ");
     printf("1. Uj asztal nyitasa. \n2. Meglevo rendeles kezelese. \n3. Korabbi rendelesek megtekintese. \n4. Zaras.\n");
     printf("A valasztott menupont (1-4):\n");
     scanf("%d", &c);
-    int read;
-    while (!success)
-    {
-        read = scanf("%d", &c);
-        if (read == 1)
-        {
-            success = true;
-        }
-        else{
-            printf("Helytelen bemenet!\n");
-            printf("A valasztott menupont (1-4):\n");
-            read = scanf("%d", &c);
-        }
-        
-        
-    }
     
+    /*TODO: input hibakezelés*/
     
     return c;
 }
