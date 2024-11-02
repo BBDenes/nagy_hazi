@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "debugmalloc.h"
 
+
 typedef struct Rendeles{
     char *termekek;
     int osszeg;
@@ -11,19 +12,21 @@ typedef struct Rendeles{
 
 typedef struct Asztal{
     int ferohely, x, y, szel, mag; //az asztal férőhelyeinek száma, az alaprajzon elfoglalt bal felső sarok x, y koordinátája és az asztal fizikai méretei
-    Rendeles *rendelesek;
     
 }Asztal;
 
-int fomenu(void);
+int fomenu(void);  
 void ujAsztal(void);
 void rendelesMngmt(void);
 void zaras(void);
-void fajlBeolvas(Asztal *asztalok, char *alaprajz);
+bool fajlBeolvas(Asztal *asztalok);
+bool asztalMalloc(Asztal *asztalok, int meret);
 
 int main(void){
-    //fajlBeolvas(); coming soon
-    Asztal asztalok;
+    Asztal *asztalok;
+    Rendeles **rendelesek;
+    fajlBeolvas(asztalok);
+
     int choice = fomenu();
 
     switch (choice){
@@ -55,4 +58,29 @@ int fomenu(void){
     /*TODO: input hibakezelés*/
     
     return c;
+}
+
+bool asztalMalloc(Asztal *asztalok, int meret){
+    asztalok = (Asztal*) malloc(meret * sizeof(Asztal));
+    
+}
+
+bool fajlBeolvas(Asztal *asztalok){
+    FILE *fp; /* fájl mutató (file pointer/handle) */
+ 
+    fp = fopen("asztalok.txt", "r"); /* megnyitás */
+    if (fp == NULL) {
+        perror("Fajl megnyitasa sikertelen");
+        return false;
+    }
+    char c;
+    while (/* condition */)
+    {
+        /* code */
+    }
+    
+    
+
+    fclose(fp);
+    return true;
 }
