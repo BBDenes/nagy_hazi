@@ -13,6 +13,11 @@ typedef struct Rendeles{
 
 }Rendeles;
 
+typedef struct AsztalLista {
+    Asztal *adat;
+    int meret;
+} AsztalLista;
+
 bool alaprajzLefoglal(char **alaprajz, int szelesseg, int magassag);
 
 
