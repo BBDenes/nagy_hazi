@@ -2,7 +2,7 @@
 #define FAJLKEZELO_H
 
 typedef struct Asztal{
-    int id, ferohely, x, y, szel, mag; //az asztal férőhelyeinek száma, az alaprajzon elfoglalt bal felső sarok x, y koordinátája és az asztal fizikai méretei
+    int id, ferohely, x, y, szel, mag, rendelesszam; //az asztal férőhelyeinek száma, az alaprajzon elfoglalt bal felső sarok x, y koordinátája és az asztal fizikai méretei
     bool foglalt;
 }Asztal;
 
