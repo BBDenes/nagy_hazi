@@ -6,8 +6,15 @@ typedef struct Asztal{
     bool foglalt;
 }Asztal;
 
+
+typedef struct MenuElem{
+    char nev[50];
+    int ar;
+    struct MenuElem *kovetkezo;
+}MenuElem;
+
 typedef struct Rendeles{
-    char *termekek;
+    MenuElem *termekek;
     bool lezarva;
     int osszeg;
 

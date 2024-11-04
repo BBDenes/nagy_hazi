@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include "fajlkezelo.h"
 
-
+/*lefoglalja az alaprajzot*/
 bool alaprajzLefoglal(char **alaprajz, int szelesseg, int magassag){
     alaprajz = (char**) malloc(magassag * sizeof(char*));
     if(alaprajz == NULL) return false;
