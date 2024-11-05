@@ -8,7 +8,8 @@ typedef struct Asztal{
 
 
 typedef struct MenuElem{
-    char nev[50];
+    int id;
+    char *nev;
     int ar;
     struct MenuElem *kovetkezo;
 }MenuElem;
@@ -19,6 +20,12 @@ typedef struct Rendeles{
     int osszeg;
 
 }Rendeles;
+
+typedef struct RendelesLista{
+    Rendeles **rendelesek;
+    int sorszam;
+    int oszlopszam;
+}RendelesLista;
 
 typedef struct AsztalLista {
     Asztal *adat;

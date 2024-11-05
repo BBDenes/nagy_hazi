@@ -20,15 +20,44 @@ bool termekHozzaad(Rendeles **rendelesek, MenuElem *menu, int asztalszam, int re
 void termekElvesz(Rendeles **rendelesek, int asztalszam, int rendelesszam);
 
 void rendelesMngmt(AsztalLista *asztalok, Rendeles **rendelesek, MenuElem *menu, int asztalszam);
-void rendelesZar(Rendeles **rendelesek, AsztalLista *asztalok, int asztalszam, int rendelesszam);
 
+void rendelesZar(Rendeles **rendelesek, AsztalLista *asztalok, MenuElem *menu, int asztalszam, int rendelesszam){
+    //if (rendelesek[asztalszam][rendelesszam].lezarva) return;
+
+
+    
+    printf("-----------------Nyugta-----------------");
+    //nyugtaaaaa nyomtatas asztalszam, rendelesszam, termekek, aruk, osszeguk, datum, fiszemfaszom...
+
+    /* peldakod a datumhoz
+        #include <stdio.h>
+        #include <time.h>
+
+        int main()
+        {
+            time_t t = time(NULL);
+            struct tm tm = *localtime(&t);
+            printf("now: %d-%02d-%02d %02d:%02d:%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+        }
+    */
+    
+    asztalok->adat[asztalszam].foglalt = false;
+    rendelesek[asztalszam][rendelesszam].lezarva = true;
+
+}
 
 
 int main(void){
     Rendeles **rendelesek;
     AsztalLista asztalok;
     MenuElem *menu;
-    menu = menuBeolvas();
+
+    MenuElem m1, m2;
+    m1.nev = malloc((strlen("Termek1")+1) * sizeof(char));
+    strcpy(m1.nev, "Termek1");
+    m1.ar = 100;
+
+    //menu = menuBeolvas();
 
     Asztal asztal1, asztal2;
     asztal1.ferohely = 5;
@@ -50,7 +79,7 @@ int main(void){
     asztalLista_foglal(&asztalok, 2);
     asztalok.adat[0] = asztal1;
     asztalok.adat[1] = asztal2;
-    rendelesek = rendelesMalloc(asztalok.meret);
+    rendelesek = rendelesekLetrehoz(1, 0);
     if(rendelesek == NULL) return 1;
 
     int choice = fomenu();
@@ -137,25 +166,32 @@ bool asztalLista_foglal(AsztalLista *dt, int meret) {
     return dt->adat != NULL;
 }
 
-Rendeles** rendelesMalloc(const int meret){
-    Rendeles** lista = (Rendeles**) malloc(meret * sizeof(Rendeles*));
-    if(lista == NULL) return NULL;
-    for (int i = 0; i < meret; i++){
-        lista[i] = (Rendeles*) malloc(sizeof(Rendeles));
-
-        if(lista[i] == NULL){
-            for (int j = 0; j < i; j++) {
-                free(lista[j]);
-            }
-            return NULL;
+Rendeles **rendelesekLetrehoz(int rows, int cols) {
+    Rendeles **rendelesek = (Rendeles**)malloc(rows * sizeof(Rendeles*));
+    for (int i = 0; i < rows; i++) {
+        rendelesek[i] = (Rendeles*)malloc(cols * sizeof(Rendeles));
+        for (int j = 0; j < cols; j++) {
+            rendelesek[i][j].termekek = NULL;
+            rendelesek[i][j].lezarva = false;
+            rendelesek[i][j].osszeg = 0;
         }
     }
-    return lista;
+    return rendelesek;
 }
 
-void rendelesFree(Rendeles** rendelesek, int meret){
-    for (int i = 0; i < meret; i++)
+void rendelesekFelszabadit(Rendeles **rendelesek, int sor, int oszlop) {
+    for (int i = 0; i < sor; i++) {
+        for (int j = 0; j < oszlop; j++) {
+            MenuElem *jelenlegi = rendelesek[i][j].termekek;
+            while (jelenlegi != NULL) {
+                MenuElem *next = jelenlegi->kovetkezo;
+                free(jelenlegi->nev);
+                free(jelenlegi);
+                jelenlegi = next;
+            }
+        }
         free(rendelesek[i]);
+    }
     free(rendelesek);
 }
 
@@ -186,7 +222,6 @@ void rendelesKiir(Rendeles ** rendelesek, AsztalLista *asztalok){
         }
         
     }
-    
 }
 
 void rendelesMngmt(AsztalLista *asztalok, Rendeles **rendelesek, MenuElem *menu, int asztalszam){
@@ -215,7 +250,7 @@ void rendelesMngmt(AsztalLista *asztalok, Rendeles **rendelesek, MenuElem *menu,
             termekElvesz(rendelesek, asztalszam, asztalok->adat[asztalszam].rendelesszam);
         break;
         case 3:
-            rendelesZar(rendelesek,asztalok, asztalszam, asztalok->adat[asztalszam].rendelesszam);
+            rendelesZar(rendelesek,asztalok, menu, asztalszam, asztalok->adat[asztalszam].rendelesszam);
         break;
         default:
             printf("Helytelen bemenet!");
@@ -248,26 +283,3 @@ void termekElvesz(Rendeles **rendelesek, int asztalszam, int rendelesszam){
     free(i);
 }
 
-void rendelesZar(Rendeles **rendelesek, AsztalLista *asztalok, const MenuElem *menu, int asztalszam, int rendelesszam){
-    if (rendelesek[asztalszam][rendelesszam].lezarva) return;
-
-    asztalok->adat[asztalszam].foglalt = false;
-    rendelesek[asztalszam][rendelesszam].lezarva = true;
-    
-    printf("-----------------Nyugta-----------------");
-    //nyugtaaaaa nyomtatas asztalszam, rendelesszam, termekek, aruk, osszeguk, datum, fiszemfaszom...
-
-    /* peldakod a datumhoz
-        #include <stdio.h>
-        #include <time.h>
-
-        int main()
-        {
-            time_t t = time(NULL);
-            struct tm tm = *localtime(&t);
-            printf("now: %d-%02d-%02d %02d:%02d:%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-        }
-    */
-    
-
-}
