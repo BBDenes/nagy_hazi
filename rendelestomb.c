@@ -198,6 +198,7 @@ int main() {
         printf("ID: %d, Name: %s, Price: %d\n", current->id, current->nev, current->ar);
         current = current->kovetkezo;
     }
+    alaprajzKiir(alaprajz, 20);
     
     int choice = fomenu();
 

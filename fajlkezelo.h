@@ -31,6 +31,6 @@ typedef struct AsztalLista {
 Asztal *ujAsztal(int id, int ferohely, int x, int y, int szelesseg, int magassag);
 char **alaprajzBeolvas(AsztalLista *asztalok);
 void alaprajzFelszabadit(char **alaprajz, int sor);
-
+void alaprajzKiir(char **alaprajz, int mag);
 
 #endif

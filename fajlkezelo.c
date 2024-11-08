@@ -76,7 +76,7 @@ char **alaprajzBeolvas(AsztalLista *asztalok){
 
 
     fclose(fp);
-    return true;
+    return alaprajz;
 }
 
 void alaprajzFelszabadit(char **alaprajz, int sor) {
@@ -86,7 +86,16 @@ void alaprajzFelszabadit(char **alaprajz, int sor) {
     free(alaprajz);
 }
 
-alaprajzKiir(char **alaprajz){
-
+void alaprajzKiir(char **alaprajz, int mag){
+    for(int i = 0; i < mag; i++){
+        int j = 0;
+        char c = alaprajz[i][0];
+        while(c != '\0'){
+            printf("%c", c);
+            j++;
+            c = alaprajz[i][j];
+        }
+        printf("\n");
+    }
 }
 
