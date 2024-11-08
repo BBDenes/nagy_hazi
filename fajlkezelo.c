@@ -3,24 +3,28 @@
 #include <stdbool.h>
 #include "fajlkezelo.h"
 
-/*lefoglalja az alaprajzot*/
-bool alaprajzLefoglal(char **alaprajz, int szelesseg, int magassag){
-    alaprajz = (char**) malloc(magassag * sizeof(char*));
-    if(alaprajz == NULL) return false;
-    for (int i = 0; i < magassag; i++){
-        alaprajz[i] = (char*) malloc(szelesseg * sizeof(char));
-        if(alaprajz[i] == NULL) return false;
+Asztal *ujAsztal(int id, int ferohely, int x, int y, int szelesseg, int magassag) {
+    Asztal *uj = (Asztal *)malloc(sizeof(Asztal));
+    if (!uj) {
+        return NULL;
     }
-    
-    return true;
+
+    uj->id = id;
+    uj->ferohely = ferohely;
+    uj->x = x;
+    uj->y = y;
+    uj->szel = szelesseg;
+    uj->mag = magassag;
+
+    return uj;
 }
 
 
 /*
-    *Beolvassa az asztalokat a fajlbol
+    *Beolvassa az asztalok helyet es ferohelyszamat a fajlbol @return a kesz alaprajz, hiba eseten NULL
 */
-bool alaprajzBeolvas(){
-    char *alaprajz;
+char **alaprajzBeolvas(AsztalLista *asztalok){
+
     FILE *fp;
     fp = fopen("asztalok.txt", "r");
     if (fp == NULL) {
@@ -42,17 +46,47 @@ bool alaprajzBeolvas(){
             alaprajzMagassag++;
         }
         sorHossz++;
-        printf("%c", c);
+        // printf("%c", c);
 
     }
     alaprajzMagassag--;
-    
-    
-    
-    
+
+    rewind(fp); //vissza a fajl elejere, hogy be lehessen olvasni kulon az asztalokat
+
+    char **alaprajz = (char**) malloc(alaprajzMagassag * sizeof(char*));
+        if (!alaprajz) {
+        fclose(fp);
+        return NULL;
+    }
+
+    for (int i = 0; i < alaprajzMagassag; i++) {
+        alaprajz[i] = (char *)malloc((alaprajzSzelesseg + 1) * sizeof(char));
+        if (alaprajz[i] == NULL) {
+            alaprajzFelszabadit(alaprajz, i); //felszabaditja az eddig lefoglalt memoriat   
+            fclose(fp);
+            return NULL;
+        }
+    }
+
+    for (int i = 0; i < alaprajzMagassag; i++) {
+        fgets(alaprajz[i], alaprajzSzelesseg + 1, fp);
+        alaprajz[i][strcspn(alaprajz[i], "\n")] = '\0'; //az enterek helyett beszur egy string vegjelet, hogy egy sor legyen
+    }
+
+
 
     fclose(fp);
     return true;
 }
 
+void alaprajzFelszabadit(char **alaprajz, int sor) {
+    for (int i = 0; i < sor; i++) {
+        free(alaprajz[i]);
+    }
+    free(alaprajz);
+}
+
+alaprajzKiir(char **alaprajz){
+
+}
 

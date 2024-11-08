@@ -2,29 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
-
-typedef struct Asztal{
-    int id, ferohely, x, y, szel, mag, rendelesszam; //az asztal férőhelyeinek száma, az alaprajzon elfoglalt bal felső sarok x, y koordinátája és az asztal fizikai méretei
-    bool foglalt;
-}Asztal;
-
-typedef struct AsztalLista {
-    Asztal *adat;
-    int meret;
-} AsztalLista;
-
-typedef struct MenuElem {
-    char *nev;
-    int ar;
-    struct MenuElem *kovetkezo;
-} MenuElem;
-
-typedef struct Rendeles {
-    MenuElem *termekek;
-    bool lezarva;
-    int osszeg;
-} Rendeles;
+#include "fajlkezelo.h"
 
 /*letrehozza a rendelesek tombot @return a rendelesekre mutato pointer*/
 Rendeles **rendelesekLetrehoz(int rows, int cols) {
@@ -39,7 +17,6 @@ Rendeles **rendelesekLetrehoz(int rows, int cols) {
     }
     return rendelesek;
 }
-
 
 /*Hozzaad egy rendeles a megadott asztalhoz, @return semmi*/
 bool rendelesHozzaad(Rendeles **rendelesek, int asztal, int ujMeret) {
@@ -75,7 +52,8 @@ bool rendelesElvesz(Rendeles **rendelesek, int asztal, int ujMeret){
     return true;
 
 }
-// Function to print all rendelesek in the array
+
+/*Kiirja a rendeleseket asztalokra, majd azokon belul rendelesekre bontva*/
 void rendelesekKiir(Rendeles **rendelesek, int sor, int oszlop) {
     for (int i = 0; i < sor; i++) {
         printf("Asztal %d\n", i);
@@ -91,9 +69,10 @@ void rendelesekKiir(Rendeles **rendelesek, int sor, int oszlop) {
     }
 }
 
-void rendelesFelszabadit(Rendeles **rendelesek, int rows, int cols) {
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
+/* Felszabaditja a rendelesek tombhoz lefoglalt memoriat*/
+void rendelesFelszabadit(Rendeles **rendelesek, AsztalLista *asztalok) {
+    for (int i = 0; i < asztalok->meret; i++) {
+        for (int j = 0; j < asztalok->adat[i].rendelesszam; j++) {
             printf("%d", rendelesek[i][j].osszeg);
             MenuElem *jelenlegi = rendelesek[i][j].termekek;
             while (jelenlegi != NULL) {
@@ -108,6 +87,7 @@ void rendelesFelszabadit(Rendeles **rendelesek, int rows, int cols) {
     free(rendelesek);
 }
 
+/* Termek hozzaadasa az etterem menujenek listajahoz @return ha hiba tortent, false, egyeb esetben true*/
 bool termekHozzaad(Rendeles **rendelesek, int sor, int oszlop, char *nev, int ar){
     MenuElem *ujTermek = (MenuElem*) malloc(sizeof(MenuElem));
     if(ujTermek == NULL) return false;
@@ -131,7 +111,7 @@ bool termekHozzaad(Rendeles **rendelesek, int sor, int oszlop, char *nev, int ar
 }
 
 bool termekElvesz(Rendeles **rendelesek, int sor, int oszlop){
-    if(rendelesek[sor][oszlop].termekek == NULL) return true;
+    if(rendelesek[sor][oszlop].termekek == NULL) return false;
     MenuElem *mozgo = rendelesek[sor][oszlop].termekek;
     MenuElem *elozo = NULL;
 
@@ -145,16 +125,109 @@ bool termekElvesz(Rendeles **rendelesek, int sor, int oszlop){
     } else {
         elozo->kovetkezo = NULL;
     }
+    return true;
 
 }
 
+
+/*Beolvassa a menut a megadott fajlbol @param fajlnev fajl neve @param menu a menu lancolt listaja*/
+bool menuBeolvas(char *fajlnev ,MenuElem **menu){
+    FILE *fp;
+
+    fp = fopen(fajlnev, "r");
+    if(fp == NULL){
+        perror("Fajl beolvasasa sikertelen!");
+        return false;
+    }
+
+    int id, ar;
+    char nev[50];
+
+    while (fscanf(fp, "%d;%49[^;];%d", &id, nev, &ar) == 3) {
+        MenuElem *ujElem = (MenuElem *)malloc(sizeof(MenuElem));
+        if(ujElem == NULL) return false;
+        ujElem->id = id;
+        ujElem->nev = strdup(nev);          //uj elem letrehozasa
+        ujElem->ar = ar;
+        ujElem->kovetkezo = NULL;
+
+        if (*menu == NULL)   //elso elem?
+        {
+            *menu = ujElem;
+        }else{
+            MenuElem *jelenlegi = *menu;
+            while(jelenlegi->kovetkezo != NULL){
+                jelenlegi = jelenlegi->kovetkezo;
+            }
+            jelenlegi->kovetkezo = ujElem;
+
+        }
+
+        
+    }
+    return true;
+
+    
+}
+
+int fomenu(void){
+    int c;
+    system("cls");
+    printf("------Fomenu - A megfelelo sorszam beirasaval lehet valasztani. ------ ");
+    printf("1. Uj asztal nyitasa. \n2. Meglevo rendeles kezelese. \n3. Korabbi rendelesek megtekintese. \n4. Zaras.\n\n");
+    printf("A valasztott menupont (1-4), vagy -1 a kilepeshez:\n");
+    scanf("%d", &c);
+    printf("\n");
+    /*TODO: input hibakezelés*/
+    
+    return c;
+}
 
 
 
 
 int main() {
     Rendeles **rendelesek = rendelesekLetrehoz(2, 1);
+    MenuElem *etteremMenu = NULL;
+    AsztalLista *asztalok = NULL;
+    menuBeolvas("menu.txt", &etteremMenu);
+    char **alaprajz = alaprajzBeolvas(asztalok);
 
+    MenuElem *current = etteremMenu;
+    while (current->kovetkezo != NULL) {
+        printf("ID: %d, Name: %s, Price: %d\n", current->id, current->nev, current->ar);
+        current = current->kovetkezo;
+    }
+    
+    int choice = fomenu();
+
+    while(choice != -1){
+        switch (choice){
+            case 1:
+                //ujAsztal(&asztalok, asztalok.meret, rendelesek);
+            break;
+            case 2:
+                printf("Melyik asztal rendeleset szeretne kezelni? (1-%d)\n", asztalok->meret);
+                int asztalSzam;
+                while(scanf("%d", &asztalSzam) != 1){
+                    printf("Helytelen bemenet!");
+                    scanf("%d", &asztalSzam);
+                }
+                
+            break;
+            case 3:
+                //rendlesLista();
+            break;
+            case 4:
+                //zaras();
+            break;
+            default:
+            break;
+        }
+        choice = fomenu();
+    }
+
+    
     // Example usage
     rendelesHozzaad(rendelesek, 0,0);
     rendelesHozzaad(rendelesek, 0, 1);
@@ -172,6 +245,6 @@ int main() {
 
     //rendelesTorol(rendelesek, 0);
 
-    // Free allocated memory
+    rendelesFelszabadit(rendelesek, asztalok);
     return 0;
 }

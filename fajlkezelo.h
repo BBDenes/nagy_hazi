@@ -21,18 +21,16 @@ typedef struct Rendeles{
 
 }Rendeles;
 
-typedef struct RendelesLista{
-    Rendeles **rendelesek;
-    int sorszam;
-    int oszlopszam;
-}RendelesLista;
+
 
 typedef struct AsztalLista {
     Asztal *adat;
     int meret;
 } AsztalLista;
 
-bool alaprajzLefoglal(char **alaprajz, int szelesseg, int magassag);
+Asztal *ujAsztal(int id, int ferohely, int x, int y, int szelesseg, int magassag);
+char **alaprajzBeolvas(AsztalLista *asztalok);
+void alaprajzFelszabadit(char **alaprajz, int sor);
 
 
 #endif
