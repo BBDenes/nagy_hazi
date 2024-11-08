@@ -9,8 +9,7 @@
                 "-g",
                 "${workspaceFolder}/*.c",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe",
-                "/fajlkezelo.c"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
                 "cwd": "${fileDirname}"

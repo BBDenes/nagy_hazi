@@ -18,7 +18,7 @@ Rendeles **rendelesekLetrehoz(int rows, int cols) {
     return rendelesek;
 }
 
-/*Hozzaad egy rendeles a megadott asztalhoz, @return semmi*/
+/*Hozzaad egy rendelest a megadott asztalhoz, @return semmi*/
 bool rendelesHozzaad(Rendeles **rendelesek, int asztal, int ujMeret) {
     ujMeret++;
     Rendeles *ujsor = (Rendeles*) malloc(ujMeret*sizeof(Rendeles));
@@ -141,7 +141,7 @@ bool menuBeolvas(char *fajlnev ,MenuElem **menu){
     }
 
     int id, ar;
-    char nev[50];
+    char nev[100];
 
     while (fscanf(fp, "%d;%49[^;];%d", &id, nev, &ar) == 3) {
         MenuElem *ujElem = (MenuElem *)malloc(sizeof(MenuElem));
@@ -198,7 +198,6 @@ int main() {
         printf("ID: %d, Name: %s, Price: %d\n", current->id, current->nev, current->ar);
         current = current->kovetkezo;
     }
-    alaprajzKiir(alaprajz, 20);
     
     int choice = fomenu();
 
@@ -214,6 +213,7 @@ int main() {
                     printf("Helytelen bemenet!");
                     scanf("%d", &asztalSzam);
                 }
+                asztalKezel(*rendelesek, *asztalok);
                 
             break;
             case 3:
