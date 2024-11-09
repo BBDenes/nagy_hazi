@@ -3,13 +3,13 @@
 #include <string.h>
 #include <stdbool.h>
 #include "fajlkezelo.h"
-
+#include "rendeleskezelo.h"
 /*letrehozza a rendelesek tombot @return a rendelesekre mutato pointer*/
-Rendeles **rendelesekLetrehoz(int rows, int cols) {
-    Rendeles **rendelesek = (Rendeles **)malloc(rows * sizeof(Rendeles *));
-    for (int i = 0; i < rows; i++) {
-        rendelesek[i] = (Rendeles *)malloc(cols * sizeof(Rendeles));
-        for (int j = 0; j < cols; j++) {
+Rendeles **rendelesekLetrehoz(int sorok, int oszlopok) {
+    Rendeles **rendelesek = (Rendeles **)malloc(sorok * sizeof(Rendeles *));
+    for (int i = 0; i < sorok; i++) {
+        rendelesek[i] = (Rendeles *)malloc(oszlopok * sizeof(Rendeles));
+        for (int j = 0; j < oszlopok; j++) {
             rendelesek[i][j].termekek = NULL;
             rendelesek[i][j].lezarva = false;
             rendelesek[i][j].osszeg = 0;
@@ -36,6 +36,58 @@ bool rendelesHozzaad(Rendeles **rendelesek, int asztal, int ujMeret) {
     rendelesek[asztal] = ujsor;
     return true;
     
+}
+
+int len(Asztal *asztalok){
+    int meret = 0;
+    Asztal *mozgo = asztalok;
+
+    while (mozgo != NULL) {
+        meret++;
+        mozgo = mozgo->kov;
+    }
+    return meret;
+}
+
+Asztal *keres(Asztal *asztalok, int index){
+    Asztal *mozgo = asztalok;
+    for(int i = 0; i < index; i++) mozgo = mozgo->kov;
+    return mozgo;
+}
+
+/*megnyit egy uj asztalt, majd hozzaad egy rendelest */
+void ujAsztal(Asztal *asztalok, Rendeles **rendelesek){
+    
+    int meret = len(asztalok);
+
+    system("cls");
+    printf("Melyik asztalt szeretne megnyitni? (1-%d), vagy -1 a visszalepeshez)\n", meret);
+    //input error handling.....
+    int in;
+    scanf("%i", &in);
+    if(in == -1){
+        return;
+    }
+    Asztal *kivalasztott = keres(asztalok, in);
+
+
+    while(kivalasztott->foglalt){
+        printf("A kivalasztott asztal mar foglalt, valasszon masikat!\n");
+        scanf("%i", &in);
+        if(in == -1){
+            return;
+        }
+        Asztal *kivalasztott = keres(asztalok, in);
+    }
+    in--;
+    if(kivalasztott->rendelesszam != 0){
+        rendelesHozzaad(rendelesek, kivalasztott->id, kivalasztott->rendelesszam+1);
+    }
+    rendelesek[in][kivalasztott->rendelesszam].osszeg = 0;
+    rendelesek[in][kivalasztott->rendelesszam].lezarva = false;
+    kivalasztott->foglalt = true;
+    kivalasztott->rendelesszam++;
+    return;
 }
 
 /*Torli a megadott sor utolso termeket*/
@@ -70,9 +122,12 @@ void rendelesekKiir(Rendeles **rendelesek, int sor, int oszlop) {
 }
 
 /* Felszabaditja a rendelesek tombhoz lefoglalt memoriat*/
-void rendelesFelszabadit(Rendeles **rendelesek, AsztalLista *asztalok) {
-    for (int i = 0; i < asztalok->meret; i++) {
-        for (int j = 0; j < asztalok->adat[i].rendelesszam; j++) {
+void rendelesFelszabadit(Rendeles **rendelesek, Asztal *asztalok) {
+    int meret = len(asztalok);
+
+    for (int i = 0; i < meret; i++) {
+        Asztal *kivalasztott = keres(asztalok, i);
+        for (int j = 0; j < kivalasztott->rendelesszam; j++) {
             printf("%d", rendelesek[i][j].osszeg);
             MenuElem *jelenlegi = rendelesek[i][j].termekek;
             while (jelenlegi != NULL) {
@@ -87,29 +142,8 @@ void rendelesFelszabadit(Rendeles **rendelesek, AsztalLista *asztalok) {
     free(rendelesek);
 }
 
-/* Termek hozzaadasa az etterem menujenek listajahoz @return ha hiba tortent, false, egyeb esetben true*/
-bool termekHozzaad(Rendeles **rendelesek, int sor, int oszlop, char *nev, int ar){
-    MenuElem *ujTermek = (MenuElem*) malloc(sizeof(MenuElem));
-    if(ujTermek == NULL) return false;
 
-    ujTermek->nev = strdup(nev);
-    ujTermek->ar = ar;
-    ujTermek->kovetkezo = NULL;
-
-    if (rendelesek[sor][oszlop].termekek == NULL){
-        rendelesek[sor][oszlop].termekek = ujTermek;
-    }else{
-        MenuElem *mozgo = rendelesek[sor][oszlop].termekek;
-        while(mozgo->kovetkezo != NULL){
-            mozgo = mozgo->kovetkezo;
-        }
-        mozgo->kovetkezo = ujTermek;
-    }
-
-    rendelesek[sor][oszlop].osszeg += ujTermek->ar;
-    return true;
-}
-
+/*elveszi az utolso termeket a rendeles termekei kozul @return false ha baj van, true ha minden ok*/
 bool termekElvesz(Rendeles **rendelesek, int sor, int oszlop){
     if(rendelesek[sor][oszlop].termekek == NULL) return false;
     MenuElem *mozgo = rendelesek[sor][oszlop].termekek;
@@ -169,21 +203,5 @@ bool menuBeolvas(char *fajlnev ,MenuElem **menu){
 
     
 }
-
-int fomenu(void){
-    int c;
-    system("cls");
-    printf("------Fomenu - A megfelelo sorszam beirasaval lehet valasztani. ------ ");
-    printf("1. Uj asztal nyitasa. \n2. Meglevo rendeles kezelese. \n3. Korabbi rendelesek megtekintese. \n4. Zaras.\n\n");
-    printf("A valasztott menupont (1-4), vagy -1 a kilepeshez:\n");
-    scanf("%d", &c);
-    printf("\n");
-    /*TODO: input hibakezelés*/
-    
-    return c;
-}
-
-
-
 
 

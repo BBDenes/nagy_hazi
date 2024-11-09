@@ -1,41 +1,30 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include "fajlkezelo.h"
+#include "rendeleskezelo.h"
 
-void ujAsztal(const AsztalLista *asztalok, const int meret, Rendeles **rendelesek){
-    system("cls");
-    printf("Melyik asztalt szeretne megnyitni? (1-%d), vagy -1 a visszalepeshez)\n", asztalok->meret);
-    //input error handling.....
-    int in;
-    scanf("%i", &in);
-    if(in == -1){
-        return;
-    }
-    while(asztalok->adat[in-1].foglalt){
-        printf("A kivalasztott asztal mar foglalt, valasszon masikat!\n");
-        scanf("%i", &in);
-        if(in == -1){
-            return;
-        }
-    }
-    in--;
-    Asztal jelenlegiAsztal = asztalok->adat[in];
-    if(jelenlegiAsztal.rendelesszam != 0){
-        rendelesHozzaad(rendelesek, in, jelenlegiAsztal.rendelesszam-1, jelenlegiAsztal.rendelesszam); //lefoglal uj memoriateruletet az uj rendeles szamara
-    }
-    rendelesek[in][jelenlegiAsztal.rendelesszam].osszeg = 0;
-    rendelesek[in][jelenlegiAsztal.rendelesszam].lezarva = false;
-    asztalok->adat[in].foglalt = true;
-    asztalok->adat[in].rendelesszam++;
-    rendelesKiir(rendelesek, asztalok);
-    return;
+
+int fomenu(void){
+    int c;
+    //system("cls");
+    printf("------Fomenu - A megfelelo sorszam beirasaval lehet valasztani. ------ ");
+    printf("1. Uj asztal nyitasa. \n2. Meglevo rendeles kezelese. \n3. Korabbi rendelesek megtekintese. \n4. Zaras.\n\n");
+    printf("A valasztott menupont (1-4), vagy -1 a kilepeshez:\n");
+    scanf("%d", &c);
+    printf("\n");
+    /*TODO: input hibakezelés*/
+    
+    return c;
 }
+
+
 
 int main() {
     Rendeles **rendelesek = rendelesekLetrehoz(2, 1);
     MenuElem *etteremMenu = NULL;
-    AsztalLista *asztalok = NULL;
+    Asztal *asztalok = NULL;
     menuBeolvas("menu.txt", &etteremMenu);
     char **alaprajz = alaprajzBeolvas(asztalok);
 
@@ -50,17 +39,10 @@ int main() {
     while(choice != -1){
         switch (choice){
             case 1:
-                //ujAsztal(&asztalok, asztalok.meret, rendelesek);
+                ujAsztal(asztalok, rendelesek);
             break;
             case 2:
-                printf("Melyik asztal rendeleset szeretne kezelni? (1-%d)\n", asztalok->meret);
-                int asztalSzam;
-                while(scanf("%d", &asztalSzam) != 1){
-                    printf("Helytelen bemenet!");
-                    scanf("%d", &asztalSzam);
-                }
-                asztalKezel(*rendelesek, *asztalok);
-                
+                //rendeleskezel();
             break;
             case 3:
                 //rendlesLista();
@@ -71,27 +53,27 @@ int main() {
             default:
             break;
         }
+        rendelesekKiir(rendelesek, 2, 2);
         choice = fomenu();
     }
 
     
     // Example usage
-    rendelesHozzaad(rendelesek, 0,0);
-    rendelesHozzaad(rendelesek, 0, 1);
-    rendelesHozzaad(rendelesek, 1, 0);
+    // rendelesHozzaad(rendelesek, 0,0);
+    // rendelesHozzaad(rendelesek, 0, 1);
+    // rendelesHozzaad(rendelesek, 1, 0);
 
-    rendelesekKiir(rendelesek, 2, 2);
 
-    termekHozzaad(rendelesek, 0, 0, "Pizza", 1500);
-    termekHozzaad(rendelesek, 0, 0, "Masik pizza", 1450);
-    termekHozzaad(rendelesek, 0, 1, "Hambi", 2500);
-    termekHozzaad(rendelesek, 1, 0, "Valami", 1999);
+    // termekHozzaad(rendelesek, 0, 0, "Pizza", 1500);
+    // termekHozzaad(rendelesek, 0, 0, "Masik pizza", 1450);
+    // termekHozzaad(rendelesek, 0, 1, "Hambi", 2500);
+    // termekHozzaad(rendelesek, 1, 0, "Valami", 1999);
 
-    rendelesekKiir(rendelesek, 2, 2);
+    // rendelesekKiir(rendelesek, 2, 2);
     
 
-    //rendelesTorol(rendelesek, 0);
+    // //rendelesTorol(rendelesek, 0);
 
-    rendelesFelszabadit(rendelesek, asztalok);
+    // rendelesFelszabadit(rendelesek, asztalok);
     return 0;
 }

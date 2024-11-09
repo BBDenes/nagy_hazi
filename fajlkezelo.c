@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include "fajlkezelo.h"
 
-Asztal *ujAsztal(int id, int ferohely, int x, int y, int szelesseg, int magassag) {
-    Asztal *uj = (Asztal *)malloc(sizeof(Asztal));
+
+Asztal *asztalLetrehoz(int id, int ferohely, int x, int y, int szelesseg, int magassag) {
+    Asztal *uj = (Asztal *) malloc(sizeof(Asztal));
     if (!uj) {
         return NULL;
     }
@@ -15,6 +17,9 @@ Asztal *ujAsztal(int id, int ferohely, int x, int y, int szelesseg, int magassag
     uj->y = y;
     uj->szel = szelesseg;
     uj->mag = magassag;
+    uj->kov = NULL;
+    
+   
 
     return uj;
 }
@@ -23,7 +28,7 @@ Asztal *ujAsztal(int id, int ferohely, int x, int y, int szelesseg, int magassag
 /*
     *Beolvassa az asztalok helyet es ferohelyszamat a fajlbol @return a kesz alaprajz, hiba eseten NULL
 */
-char **alaprajzBeolvas(AsztalLista *asztalok){
+char **alaprajzBeolvas(Asztal *asztalok){
 
     FILE *fp;
     fp = fopen("asztalok.txt", "r");
@@ -36,7 +41,6 @@ char **alaprajzBeolvas(AsztalLista *asztalok){
     int alaprajzMagassag = 0;
     int sorHossz = 0;
     
-    c = fgetc(fp);
     while ((c = fgetc(fp)) != EOF)
     {   
         if(c == '1') break;
@@ -76,7 +80,31 @@ char **alaprajzBeolvas(AsztalLista *asztalok){
 
 
     fclose(fp);
+    asztalBeolvas(alaprajz, alaprajzMagassag, alaprajzSzelesseg, asztalok);
     return alaprajz;
+}
+
+/* Termek hozzaadasa az etterem menujenek listajahoz @return ha hiba tortent, false, egyeb esetben true*/
+bool termekHozzaad(Rendeles **rendelesek, int sor, int oszlop, char *nev, int ar){
+    MenuElem *ujTermek = (MenuElem*) malloc(sizeof(MenuElem));
+    if(ujTermek == NULL) return false;
+
+    ujTermek->nev = strdup(nev);
+    ujTermek->ar = ar;
+    ujTermek->kovetkezo = NULL;
+
+    if (rendelesek[sor][oszlop].termekek == NULL){
+        rendelesek[sor][oszlop].termekek = ujTermek;
+    }else{
+        MenuElem *mozgo = rendelesek[sor][oszlop].termekek;
+        while(mozgo->kovetkezo != NULL){
+            mozgo = mozgo->kovetkezo;
+        }
+        mozgo->kovetkezo = ujTermek;
+    }
+
+    rendelesek[sor][oszlop].osszeg += ujTermek->ar;
+    return true;
 }
 
 void alaprajzFelszabadit(char **alaprajz, int sor) {
@@ -96,6 +124,52 @@ void alaprajzKiir(char **alaprajz, int mag){
             c = alaprajz[i][j];
         }
         printf("\n");
+    }
+}
+
+Asztal* asztalListaHozzaad(Asztal *asztalok, Asztal *ujAsztal){
+    if (ujAsztal == NULL) {
+        return false;
+    }
+
+    if (asztalok == NULL) {
+        return ujAsztal;
+    } else {
+        Asztal *aktualis = asztalok;
+        while (aktualis->kov != NULL) {
+            aktualis = aktualis->kov;
+        }
+        aktualis->kov = ujAsztal;
+    }
+
+    return asztalok;
+
+}
+
+/*beolvassa az asztalokat az alaprajzbol*/
+void asztalBeolvas(char **alaprajz, int sorok, int oszlopok, Asztal *asztalok) {
+    int asztalId = 0;
+    Asztal *uj1 = asztalLetrehoz(asztalId++, 15, 20, 10, 5, 4);
+    asztalok = asztalListaHozzaad(asztalok, uj1);
+    uj1 = asztalLetrehoz(asztalId++, 20, 5, 10, 3, 3);
+    asztalok = asztalListaHozzaad(asztalok, uj1);
+    return;
+    //ez alatt nem jo
+
+    for (int i = 0; i < sorok; i++) {
+        for (int j = 0; j < oszlopok; j++) {
+            if (alaprajz[i][j] == '#') {
+                int szelesseg = 0, magassag = 0;
+                while (j + szelesseg < oszlopok && alaprajz[i][j + szelesseg] == '#') {
+                    szelesseg++;
+                }
+                while (i + magassag < sorok && alaprajz[i + magassag][j] == '#') {
+                    magassag++;
+                }
+                Asztal *uj = asztalLetrehoz(asztalId++, 0, j, i, szelesseg, magassag);
+                asztalListaHozzaad(asztalok, uj);
+            }
+        }
     }
 }
 
