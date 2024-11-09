@@ -28,7 +28,7 @@ Asztal *asztalLetrehoz(int id, int ferohely, int x, int y, int szelesseg, int ma
 /*
     *Beolvassa az asztalok helyet es ferohelyszamat a fajlbol @return a kesz alaprajz, hiba eseten NULL
 */
-char **alaprajzBeolvas(Asztal *asztalok){
+char **alaprajzBeolvas(Asztal **asztalok){
 
     FILE *fp;
     fp = fopen("asztalok.txt", "r");
@@ -80,7 +80,7 @@ char **alaprajzBeolvas(Asztal *asztalok){
 
 
     fclose(fp);
-    asztalBeolvas(alaprajz, alaprajzMagassag, alaprajzSzelesseg, asztalok);
+    *asztalok = asztalBeolvas(alaprajz, alaprajzMagassag, alaprajzSzelesseg, asztalok);
     return alaprajz;
 }
 
@@ -147,13 +147,13 @@ Asztal* asztalListaHozzaad(Asztal *asztalok, Asztal *ujAsztal){
 }
 
 /*beolvassa az asztalokat az alaprajzbol*/
-void asztalBeolvas(char **alaprajz, int sorok, int oszlopok, Asztal *asztalok) {
+Asztal *asztalBeolvas(char **alaprajz, int sorok, int oszlopok, Asztal *asztalok) {
     int asztalId = 0;
     Asztal *uj1 = asztalLetrehoz(asztalId++, 15, 20, 10, 5, 4);
     asztalok = asztalListaHozzaad(asztalok, uj1);
     uj1 = asztalLetrehoz(asztalId++, 20, 5, 10, 3, 3);
     asztalok = asztalListaHozzaad(asztalok, uj1);
-    return;
+    return asztalok;
     //ez alatt nem jo
 
     for (int i = 0; i < sorok; i++) {
@@ -167,9 +167,10 @@ void asztalBeolvas(char **alaprajz, int sorok, int oszlopok, Asztal *asztalok) {
                     magassag++;
                 }
                 Asztal *uj = asztalLetrehoz(asztalId++, 0, j, i, szelesseg, magassag);
-                asztalListaHozzaad(asztalok, uj);
+                asztalok = asztalListaHozzaad(asztalok, uj);
             }
         }
     }
+    return asztalok;
 }
 

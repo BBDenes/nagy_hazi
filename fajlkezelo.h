@@ -27,6 +27,6 @@
     void alaprajzFelszabadit(char **alaprajz, int sor);
     void alaprajzKiir(char **alaprajz, int mag);
     bool termekHozzaad(Rendeles **rendelesek, int sor, int oszlop, char *nev, int ar);
-    void asztalBeolvas(char **alaprajz, int sorok, int oszlopok, Asztal *asztalok);
+    Asztal *asztalBeolvas(char **alaprajz, int sorok, int oszlopok, Asztal *asztalok);
 
 #endif

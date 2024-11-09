@@ -26,12 +26,13 @@ int main() {
     MenuElem *etteremMenu = NULL;
     Asztal *asztalok = NULL;
     menuBeolvas("menu.txt", &etteremMenu);
-    char **alaprajz = alaprajzBeolvas(asztalok);
+    char **alaprajz = alaprajzBeolvas(&asztalok);
 
-    MenuElem *current = etteremMenu;
-    while (current->kovetkezo != NULL) {
-        printf("ID: %d, Name: %s, Price: %d\n", current->id, current->nev, current->ar);
-        current = current->kovetkezo;
+    MenuElem *jelenlegi = etteremMenu;
+    printf("Az etterem menuje:\n");
+    while (jelenlegi->kovetkezo != NULL) {
+        printf("\t- Azonosito: %d, Termek neve: %s, Termek ara: %d\n", jelenlegi->id, jelenlegi->nev, jelenlegi->ar);
+        jelenlegi = jelenlegi->kovetkezo;
     }
     
     int choice = fomenu();
