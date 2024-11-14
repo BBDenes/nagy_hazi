@@ -4,12 +4,12 @@
 #include <string.h>
 #include "fajlkezelo.h"
 #include "rendeleskezelo.h"
-
+//#include "debugmalloc.h"
 
 int fomenu(void){
     int c;
     //system("cls");
-    printf("------Fomenu - A megfelelo sorszam beirasaval lehet valasztani. ------ ");
+    printf("------Fomenu - A megfelelo sorszam beirasaval lehet valasztani. ------ \n");
     printf("1. Uj asztal nyitasa. \n2. Meglevo rendeles kezelese. \n3. Korabbi rendelesek megtekintese. \n4. Zaras.\n\n");
     printf("A valasztott menupont (1-4), vagy -1 a kilepeshez:\n");
     scanf("%d", &c);
@@ -22,11 +22,12 @@ int fomenu(void){
 
 
 int main() {
-    Rendeles **rendelesek = rendelesekLetrehoz(2, 1);
     MenuElem *etteremMenu = NULL;
     Asztal *asztalok = NULL;
     menuBeolvas("menu.txt", &etteremMenu);
-    char **alaprajz = alaprajzBeolvas(&asztalok);
+    Alaprajz *alaprajz = NULL;// = alaprajzBeolvas();
+    asztalok = asztalBeolvas(alaprajz, asztalok);
+    Rendeles **rendelesek = rendelesekLetrehoz(len(asztalok), 1);
 
     MenuElem *jelenlegi = etteremMenu;
     printf("Az etterem menuje:\n");
@@ -43,10 +44,10 @@ int main() {
                 ujAsztal(asztalok, rendelesek);
             break;
             case 2:
-                //rendeleskezel();
+                rendelesKezel(asztalok, rendelesek, etteremMenu);
             break;
             case 3:
-                //rendlesLista();
+                rendelesekKiir(rendelesek, asztalok);
             break;
             case 4:
                 //zaras();
@@ -54,27 +55,15 @@ int main() {
             default:
             break;
         }
-        rendelesekKiir(rendelesek, 2, 2);
+        rendelesekKiir(rendelesek, asztalok);
         choice = fomenu();
     }
 
     
-    // Example usage
-    // rendelesHozzaad(rendelesek, 0,0);
-    // rendelesHozzaad(rendelesek, 0, 1);
-    // rendelesHozzaad(rendelesek, 1, 0);
 
-
-    // termekHozzaad(rendelesek, 0, 0, "Pizza", 1500);
-    // termekHozzaad(rendelesek, 0, 0, "Masik pizza", 1450);
-    // termekHozzaad(rendelesek, 0, 1, "Hambi", 2500);
-    // termekHozzaad(rendelesek, 1, 0, "Valami", 1999);
-
-    // rendelesekKiir(rendelesek, 2, 2);
-    
-
-    // //rendelesTorol(rendelesek, 0);
-
-    // rendelesFelszabadit(rendelesek, asztalok);
+    rendelesFree(rendelesek, asztalok);
+    //alaprajzFelszabadit(alaprajz->adat, alaprajz->magassag);
+    asztalFree(&asztalok);
+    menuFree(&etteremMenu);
     return 0;
 }

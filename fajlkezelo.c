@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "fajlkezelo.h"
+#include "debugmalloc.h"
 
 
 Asztal *asztalLetrehoz(int id, int ferohely, int x, int y, int szelesseg, int magassag) {
@@ -17,6 +18,8 @@ Asztal *asztalLetrehoz(int id, int ferohely, int x, int y, int szelesseg, int ma
     uj->y = y;
     uj->szel = szelesseg;
     uj->mag = magassag;
+    uj->foglalt = false;
+    uj->rendelesszam = 0;
     uj->kov = NULL;
     
    
@@ -28,7 +31,7 @@ Asztal *asztalLetrehoz(int id, int ferohely, int x, int y, int szelesseg, int ma
 /*
     *Beolvassa az asztalok helyet es ferohelyszamat a fajlbol @return a kesz alaprajz, hiba eseten NULL
 */
-char **alaprajzBeolvas(Asztal **asztalok){
+Alaprajz *alaprajzBeolvas(Asztal **asztalok){
 
     FILE *fp;
     fp = fopen("asztalok.txt", "r");
@@ -80,32 +83,14 @@ char **alaprajzBeolvas(Asztal **asztalok){
 
 
     fclose(fp);
-    *asztalok = asztalBeolvas(alaprajz, alaprajzMagassag, alaprajzSzelesseg, asztalok);
-    return alaprajz;
+    //*asztalok = asztalBeolvas(alaprajz, alaprajzMagassag, alaprajzSzelesseg, asztalok);
+    Alaprajz *a;
+    a->adat = alaprajz;
+    a->szelesseg = alaprajzSzelesseg;
+    a->magassag = alaprajzMagassag;
+    return a;
 }
 
-/* Termek hozzaadasa az etterem menujenek listajahoz @return ha hiba tortent, false, egyeb esetben true*/
-bool termekHozzaad(Rendeles **rendelesek, int sor, int oszlop, char *nev, int ar){
-    MenuElem *ujTermek = (MenuElem*) malloc(sizeof(MenuElem));
-    if(ujTermek == NULL) return false;
-
-    ujTermek->nev = strdup(nev);
-    ujTermek->ar = ar;
-    ujTermek->kovetkezo = NULL;
-
-    if (rendelesek[sor][oszlop].termekek == NULL){
-        rendelesek[sor][oszlop].termekek = ujTermek;
-    }else{
-        MenuElem *mozgo = rendelesek[sor][oszlop].termekek;
-        while(mozgo->kovetkezo != NULL){
-            mozgo = mozgo->kovetkezo;
-        }
-        mozgo->kovetkezo = ujTermek;
-    }
-
-    rendelesek[sor][oszlop].osszeg += ujTermek->ar;
-    return true;
-}
 
 void alaprajzFelszabadit(char **alaprajz, int sor) {
     for (int i = 0; i < sor; i++) {
@@ -147,7 +132,7 @@ Asztal* asztalListaHozzaad(Asztal *asztalok, Asztal *ujAsztal){
 }
 
 /*beolvassa az asztalokat az alaprajzbol*/
-Asztal *asztalBeolvas(char **alaprajz, int sorok, int oszlopok, Asztal *asztalok) {
+Asztal *asztalBeolvas(Alaprajz *alaprajz, Asztal *asztalok) {
     int asztalId = 0;
     Asztal *uj1 = asztalLetrehoz(asztalId++, 15, 20, 10, 5, 4);
     asztalok = asztalListaHozzaad(asztalok, uj1);
@@ -156,14 +141,14 @@ Asztal *asztalBeolvas(char **alaprajz, int sorok, int oszlopok, Asztal *asztalok
     return asztalok;
     //ez alatt nem jo
 
-    for (int i = 0; i < sorok; i++) {
-        for (int j = 0; j < oszlopok; j++) {
-            if (alaprajz[i][j] == '#') {
+    for (int i = 0; i < alaprajz->magassag; i++) {
+        for (int j = 0; j < alaprajz->szelesseg; j++) {
+            if (alaprajz->adat[i][j] == '#') {
                 int szelesseg = 0, magassag = 0;
-                while (j + szelesseg < oszlopok && alaprajz[i][j + szelesseg] == '#') {
+                while (j + szelesseg < alaprajz->szelesseg && alaprajz->adat[i][j + szelesseg] == '#') {
                     szelesseg++;
                 }
-                while (i + magassag < sorok && alaprajz[i + magassag][j] == '#') {
+                while (i + magassag < alaprajz->magassag && alaprajz->adat[i + magassag][j] == '#') {
                     magassag++;
                 }
                 Asztal *uj = asztalLetrehoz(asztalId++, 0, j, i, szelesseg, magassag);
@@ -174,3 +159,53 @@ Asztal *asztalBeolvas(char **alaprajz, int sorok, int oszlopok, Asztal *asztalok
     return asztalok;
 }
 
+
+/*Beolvassa a menut a megadott fajlbol @param fajlnev fajl neve @param menu a menu lancolt listaja*/
+bool menuBeolvas(char *fajlnev ,MenuElem **menu){
+    FILE *fp;
+
+    fp = fopen(fajlnev, "r");
+    if(fp == NULL){
+        perror("Fajl beolvasasa sikertelen!");
+        return false;
+    }
+
+    int id, ar;
+    char nev[100];
+
+    while (fscanf(fp, "%d;%49[^;];%d", &id, nev, &ar) == 3) {
+        MenuElem *ujElem = (MenuElem *)malloc(sizeof(MenuElem));
+        if(ujElem == NULL) return false;
+        ujElem->id = id;
+        ujElem->nev = strdup(nev);          //uj elem letrehozasa
+        ujElem->ar = ar;
+        ujElem->kovetkezo = NULL;
+
+        if (*menu == NULL)   //elso elem?
+        {
+            *menu = ujElem;
+        }else{
+            MenuElem *jelenlegi = *menu;
+            while(jelenlegi->kovetkezo != NULL){
+                jelenlegi = jelenlegi->kovetkezo;
+            }
+            jelenlegi->kovetkezo = ujElem;
+
+        }
+
+        
+    }
+    return true;
+
+    
+}
+
+void menuFree(MenuElem **menu){
+    MenuElem *elem = *menu;
+
+        while(elem != NULL){
+        MenuElem *kovetkezo = elem->kovetkezo;
+        free(elem);
+        elem = kovetkezo;
+    }
+}

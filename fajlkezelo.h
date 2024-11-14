@@ -22,11 +22,18 @@
 
     }Rendeles;
 
+    typedef struct Alaprajz{
+        char **adat;
+        int szelesseg;
+        int magassag;
+    }Alaprajz;
+
     Asztal *asztalLetrehoz(int id, int ferohely, int x, int y, int szelesseg, int magassag);
-    char **alaprajzBeolvas(Asztal *asztalok);
+    Alaprajz *alaprajzBeolvas();
+    bool menuBeolvas(char *fajlnev ,MenuElem **menu);
     void alaprajzFelszabadit(char **alaprajz, int sor);
     void alaprajzKiir(char **alaprajz, int mag);
-    bool termekHozzaad(Rendeles **rendelesek, int sor, int oszlop, char *nev, int ar);
-    Asztal *asztalBeolvas(char **alaprajz, int sorok, int oszlopok, Asztal *asztalok);
+    Asztal *asztalBeolvas(Alaprajz *alaprajz, Asztal *asztalok);
+    void menuFree(MenuElem **menu);
 
 #endif
