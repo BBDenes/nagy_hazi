@@ -222,12 +222,18 @@ void rendelesKezel(Asztal *asztalok, Rendeles **rendelesek, MenuElem *menu){
                 
                 MenuElem *jelenlegi = menu;
                 while(jelenlegi->id != termekId) jelenlegi = jelenlegi->kovetkezo;
-                termekHozzaad(rendelesek, asztalId, keres(asztalok, asztalId)->rendelesszam-1, jelenlegi);
+                if(!termekHozzaad(rendelesek, asztalId, keres(asztalok, asztalId)->rendelesszam-1, jelenlegi)){ //Ha memfoglalasi hiba van, visszadobja a menube
+                    printf("Termek hozzaadasa nem sikerult, probalja meg kesobb!");
+                    return;
+                };
             } while (termekId != -1);
             
         break;
         case 2:
-            termekElvesz(rendelesek, asztalId, keres(asztalok, asztalId)->rendelesszam);
+            if(!termekElvesz(rendelesek, asztalId, keres(asztalok, asztalId)->rendelesszam)){ //hiba eseten visszadob a menube
+                printf("Termek elvetele nem sikerult!");
+                return;
+            };
         break;
         case 3:
             //rendelesLezar();

@@ -13,6 +13,7 @@ int fomenu(void){
     printf("1. Uj asztal nyitasa. \n2. Meglevo rendeles kezelese. \n3. Korabbi rendelesek megtekintese. \n4. Zaras.\n\n");
     printf("A valasztott menupont (1-4), vagy -1 a kilepeshez:\n");
     scanf("%d", &c);
+    
     printf("\n");
     /*TODO: input hibakezelés*/
     
