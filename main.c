@@ -56,7 +56,7 @@ int main() {
             default:
             break;
         }
-        rendelesekKiir(rendelesek, asztalok);
+        //rendelesekKiir(rendelesek, asztalok);
         choice = fomenu();
     }
 
