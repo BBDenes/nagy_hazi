@@ -31,9 +31,10 @@
     Asztal *asztalLetrehoz(int id, int ferohely, int x, int y, int szelesseg, int magassag);
     Alaprajz *alaprajzBeolvas(Asztal **asztalok);
     bool menuBeolvas(char *fajlnev ,MenuElem **menu);
-    void alaprajzFelszabadit(char **alaprajz, int sor);
+    void alaprajzFelszabadit(Alaprajz *alaprajz);
     void alaprajzKiir(char **alaprajz, int mag);
     Asztal *asztalBeolvas(Alaprajz *alaprajz, Asztal *asztalok);
     void menuFree(MenuElem **menu);
+    int scanf_int(char *szoveg);
 
 #endif

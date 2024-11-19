@@ -4,15 +4,16 @@
 #include <string.h>
 #include "fajlkezelo.h"
 #include "rendeleskezelo.h"
-//#include "debugmalloc.h"
+#include "mentes.h"
+#include "debugmalloc.h"
 
 int fomenu(void){
     int c;
     //system("cls");
     printf("------Fomenu - A megfelelo sorszam beirasaval lehet valasztani. ------ \n");
     printf("1. Uj asztal nyitasa. \n2. Meglevo rendeles kezelese. \n3. Korabbi rendelesek megtekintese. \n4. Zaras.\n\n");
-    printf("A valasztott menupont (1-4), vagy -1 a kilepeshez:\n");
-    scanf("%d", &c);
+
+    c = scanf_int("A valasztott menupont (1-4), vagy -1 a kilepeshez:");
     
     printf("\n");
     /*TODO: input hibakezelés*/
@@ -25,10 +26,24 @@ int fomenu(void){
 int main() {
     MenuElem *etteremMenu = NULL;
     Asztal *asztalok = NULL;
-    menuBeolvas("menu.txt", &etteremMenu);
-    Alaprajz *alaprajz = NULL;// = alaprajzBeolvas();
+    char *mentesFajlnev = "mentes.txt";
+    if(!menuBeolvas("menu.txt", &etteremMenu)){
+        perror("Menu beolvasasa sikertelen!");
+        exit(-1);
+    }
+
+    Alaprajz *alaprajz = alaprajzBeolvas(&asztalok);
+    if(alaprajz == NULL){
+        perror("Fajl beolvasasa sikertelen!");
+        exit(-2);
+    }
+
+
     asztalok = asztalBeolvas(alaprajz, asztalok);
-    Rendeles **rendelesek = rendelesekLetrehoz(len(asztalok), 1);
+    
+    Rendeles **rendelesek = rendelesekLetrehoz(len(asztalok),rendelesMax(mentesFajlnev));
+
+    Asztal *fajlbolAsztalok = asztalokBetoltes(rendelesek, mentesFajlnev);
 
     MenuElem *jelenlegi = etteremMenu;
     printf("Az etterem menuje:\n");
@@ -37,15 +52,16 @@ int main() {
         jelenlegi = jelenlegi->kovetkezo;
     }
     
-    int choice = fomenu();
+    int valasztas = fomenu();
 
-    while(choice != -1){
-        switch (choice){
+    while(valasztas != -1){
+        switch (valasztas){
             case 1:
                 ujAsztal(asztalok, rendelesek);
             break;
             case 2:
                 rendelesKezel(asztalok, rendelesek, etteremMenu);
+                asztalokMentes(asztalok, rendelesek, mentesFajlnev);
             break;
             case 3:
                 rendelesekKiir(rendelesek, asztalok);
@@ -54,16 +70,19 @@ int main() {
                 //zaras();
             break;
             default:
+                printf("Nem megfelelo menupont!");
             break;
         }
         //rendelesekKiir(rendelesek, asztalok);
-        choice = fomenu();
+        
+        valasztas = fomenu();
     }
 
     
 
     rendelesFree(rendelesek, asztalok);
-    //alaprajzFelszabadit(alaprajz->adat, alaprajz->magassag);
+    alaprajzFelszabadit(alaprajz);
+
     asztalFree(&asztalok);
     menuFree(&etteremMenu);
     return 0;

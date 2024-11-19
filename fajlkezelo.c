@@ -5,7 +5,7 @@
 #include "fajlkezelo.h"
 #include "debugmalloc.h"
 
-
+/*Letrehoz egy asztal strukturat a megadott adatokbol*/
 Asztal *asztalLetrehoz(int id, int ferohely, int x, int y, int szelesseg, int magassag) {
     Asztal *uj = (Asztal *) malloc(sizeof(Asztal));
     if (!uj) {
@@ -29,14 +29,13 @@ Asztal *asztalLetrehoz(int id, int ferohely, int x, int y, int szelesseg, int ma
 
 
 /*
-    *Beolvassa az asztalok helyet es ferohelyszamat a fajlbol @return a kesz alaprajz, hiba eseten NULL
+    Beolvassa az asztalok helyet es ferohelyszamat a fajlbol @return a kesz alaprajz, hiba eseten NULL
 */
 Alaprajz *alaprajzBeolvas(Asztal **asztalok){
 
     FILE *fp;
     fp = fopen("asztalok.txt", "r");
     if (fp == NULL) {
-        perror("Fajl megnyitasa sikertelen");
         return false;
     }
     char c;
@@ -57,6 +56,8 @@ Alaprajz *alaprajzBeolvas(Asztal **asztalok){
 
     }
     alaprajzMagassag--;
+    fseek(fp, -1L, SEEK_CUR); //mivel mar beolvasta az 1-est, ezert vissza kell menni a fajlban egyet hogy be lehessen olvasni a ferohelyeket
+    
 
     rewind(fp); //vissza a fajl elejere, hogy be lehessen olvasni kulon az asztalokat
 
@@ -69,7 +70,10 @@ Alaprajz *alaprajzBeolvas(Asztal **asztalok){
     for (int i = 0; i < alaprajzMagassag; i++) {
         alaprajz[i] = (char *)malloc((alaprajzSzelesseg + 1) * sizeof(char));
         if (alaprajz[i] == NULL) {
-            alaprajzFelszabadit(alaprajz, i); //felszabaditja az eddig lefoglalt memoriat   
+            for(int j = 0; j < i; j++){
+                free(alaprajz[j]); //felszabaditja az eddig lefoglalt memoriat
+            }
+            free(alaprajz);
             fclose(fp);
             return NULL;
         }
@@ -82,23 +86,28 @@ Alaprajz *alaprajzBeolvas(Asztal **asztalok){
 
 
 
+
+
     fclose(fp);
     //*asztalok = asztalBeolvas(alaprajz, alaprajzMagassag, alaprajzSzelesseg, asztalok);
-    Alaprajz *a;
+    Alaprajz *a = malloc(sizeof(Alaprajz));
     a->adat = alaprajz;
     a->szelesseg = alaprajzSzelesseg;
     a->magassag = alaprajzMagassag;
     return a;
 }
 
-
-void alaprajzFelszabadit(char **alaprajz, int sor) {
-    for (int i = 0; i < sor; i++) {
-        free(alaprajz[i]);
+//felszabaditja az alaprajznak lefoglalt memoriat
+void alaprajzFelszabadit(Alaprajz *alaprajz) {
+    
+    for (int i = 0; i < alaprajz->magassag; i++) {
+        free(alaprajz->adat[i]);
     }
+    free(alaprajz->adat);
     free(alaprajz);
 }
 
+//kiirja az alaprajzot a konzolra
 void alaprajzKiir(char **alaprajz, int mag){
     for(int i = 0; i < mag; i++){
         int j = 0;
@@ -112,6 +121,20 @@ void alaprajzKiir(char **alaprajz, int mag){
     }
 }
 
+//Mengezi, hogy az asztalok beolvasasa kozben minden esztal csak egyszer legyen beolvasva 
+bool bennevan(Asztal *asztalok, int sor, int oszlop){
+    bool uj = true;
+    for(Asztal *jelenlegi = asztalok; jelenlegi != NULL; jelenlegi = jelenlegi->kov){
+        if(sor >= jelenlegi->y && sor <= jelenlegi->y + jelenlegi->mag && oszlop >= jelenlegi->x && oszlop <= jelenlegi->x + jelenlegi->szel){
+            uj = false;
+            break;
+        }
+    }
+
+    return uj;
+}
+
+//hozzaad egy uj asztalt az asztalok listajahoz
 Asztal* asztalListaHozzaad(Asztal *asztalok, Asztal *ujAsztal){
     if (ujAsztal == NULL) {
         return false;
@@ -134,16 +157,10 @@ Asztal* asztalListaHozzaad(Asztal *asztalok, Asztal *ujAsztal){
 /*beolvassa az asztalokat az alaprajzbol*/
 Asztal *asztalBeolvas(Alaprajz *alaprajz, Asztal *asztalok) {
     int asztalId = 0;
-    Asztal *uj1 = asztalLetrehoz(asztalId++, 15, 20, 10, 5, 4);
-    asztalok = asztalListaHozzaad(asztalok, uj1);
-    uj1 = asztalLetrehoz(asztalId++, 20, 5, 10, 3, 3);
-    asztalok = asztalListaHozzaad(asztalok, uj1);
-    return asztalok;
-    //ez alatt nem jo
 
     for (int i = 0; i < alaprajz->magassag; i++) {
         for (int j = 0; j < alaprajz->szelesseg; j++) {
-            if (alaprajz->adat[i][j] == '#') {
+            if (alaprajz->adat[i][j] == '#' && bennevan(asztalok, i, j)) {
                 int szelesseg = 0, magassag = 0;
                 while (j + szelesseg < alaprajz->szelesseg && alaprajz->adat[i][j + szelesseg] == '#') {
                     szelesseg++;
@@ -166,7 +183,7 @@ bool menuBeolvas(char *fajlnev ,MenuElem **menu){
 
     fp = fopen(fajlnev, "r");
     if(fp == NULL){
-        perror("Fajl beolvasasa sikertelen!");
+        
         return false;
     }
 
@@ -200,6 +217,7 @@ bool menuBeolvas(char *fajlnev ,MenuElem **menu){
     
 }
 
+/*Felszabaditja a menunek lefoglalt helyet*/
 void menuFree(MenuElem **menu){
     MenuElem *elem = *menu;
 
@@ -207,5 +225,19 @@ void menuFree(MenuElem **menu){
         MenuElem *kovetkezo = elem->kovetkezo;
         free(elem);
         elem = kovetkezo;
+    }
+}
+
+int scanf_int(char *szoveg){
+    int value;
+    while (true) {
+        printf("%s", szoveg);
+        if (scanf("%d", &value) == 1) {  
+            while (getchar() != '\n');  
+            return value;               
+        } else {
+            printf("A bemenet nem egesz szam!\n");
+            while (getchar() != '\n');
+        }
     }
 }
