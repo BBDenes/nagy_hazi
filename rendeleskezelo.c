@@ -290,7 +290,7 @@ void rendelesKezel(Asztal *asztalok, Rendeles **rendelesek, MenuElem *menu){
             };
         break;
         case 3:
-            nyugtaNyomtat(keres(asztalok, asztalId), rendelesek[asztalId][keres(asztalok, asztalId)->rendelesszam]);
+            nyugtaNyomtat(keres(asztalok, asztalId), rendelesek[asztalId][(keres(asztalok, asztalId)->rendelesszam)-1]);
             rendelesek[asztalId][keres(asztalok, asztalId)->rendelesszam-1].lezarva = true;
             keres(asztalok, asztalId)->foglalt = false;
         break;
