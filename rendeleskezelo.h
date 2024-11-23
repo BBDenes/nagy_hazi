@@ -13,6 +13,7 @@
 
     void ujAsztal(Asztal *asztalok, Rendeles **rendelesek);
     int len(Asztal *asztalok);
+    Asztal *keres(Asztal *asztalok, int index);
     void asztalFree(Asztal **elso);
     void rendelesKezel(Asztal *asztalok, Rendeles **rendelesek, MenuElem *menu);
 

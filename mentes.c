@@ -15,39 +15,29 @@ int maximum(Asztal *asztalok){
     return m;
 }
 
-int getMax(const char *fajlnev){
-    FILE *fp = fopen(fajlnev, "r");
-    if(fp == NULL){
-        return 1;
-    }
-    return (int) fgetc(fp);
-    fclose(fp);
-}
-
 void asztalokMentes(Asztal *asztalok, Rendeles **rendelesek, const char *fajlNev) {
     FILE *fajl = fopen(fajlNev, "w");
     if (fajl == NULL) {
         perror("A mentes nem sikerult!");
         return;
     }
-    fprintf(fajl, "%d\n", maximum(asztalok));
+    fprintf(fajl, "0\n"); //tetves fajlbeolvasas.....
 
     const Asztal *aktualis = asztalok;
     while (aktualis != NULL) {
-        if(aktualis->rendelesszam != 0){
+        if(aktualis->rendelesszam != 0 && aktualis->foglalt){ //ha van nem lezart rendeles azt irja
 
             // adatok irasa: asztalId, rendelesszam, osszeg, termekek
             fprintf(fajl, "%d\n", aktualis->id);
-            fprintf(fajl, "%d\n", aktualis->ferohely);
             fprintf(fajl, "%d\n", aktualis->rendelesszam);
-            fprintf(fajl,"%d;%d;%d;%d\n", aktualis->x, aktualis->y, aktualis->szel, aktualis->mag);
+            //fprintf(fajl, "%d\n", aktualis->foglalt);
             fprintf(fajl, "%d\n", rendelesek[aktualis->id][(aktualis->rendelesszam)-1].osszeg);
             
             //termekek mentese
             //fprintf(fajl, "Termekek:\n");
             MenuElem *menuAktualis = rendelesek[aktualis->id][(aktualis->rendelesszam)-1].termekek;
             while (menuAktualis != NULL) {
-                fprintf(fajl, "%s - %d\n", menuAktualis->nev, menuAktualis->ar);
+                fprintf(fajl, "%s- %d\n", menuAktualis->nev, menuAktualis->ar);
                 menuAktualis = menuAktualis->kovetkezo;
             }
         }
@@ -59,15 +49,14 @@ void asztalokMentes(Asztal *asztalok, Rendeles **rendelesek, const char *fajlNev
 }
 
 
-Asztal *asztalokBetoltes(Rendeles **rendelesek, const char *fajlNev) {
+
+Rendeles **rendelesBetoltes(Asztal *asztalok, const char *fajlNev) {
     FILE *fp = fopen(fajlNev, "r");
     if (fp == NULL || fgetc(fp) == '\n') {      //ha nem letezik vagz ures a fajl, akkor nem 
-        printf("Nem talalhato mentett allapot, uj munkamanet kezdodik!");
         return NULL;
     }
-
-    Asztal *asztalok = NULL;
-    Asztal *elozo = NULL;
+    //rewind(fp);
+    Rendeles **rendelesek = (Rendeles **)malloc(len(asztalok) * sizeof(Rendeles *));
 
     char sor[256];
     while (fgets(sor, sizeof(sor), fp)) {
@@ -75,30 +64,37 @@ Asztal *asztalokBetoltes(Rendeles **rendelesek, const char *fajlNev) {
             continue; 
         }
 
-        Asztal *ujAsztal = (Asztal *)malloc(sizeof(Asztal));
-        ujAsztal->kov = NULL;
-        ujAsztal->foglalt = true;
+        int id = 0;
+        int rendelesszam = 0;
 
         // Asztal adatok betöltése
-        sscanf(sor, "%d", &ujAsztal->id);
+        sscanf(sor, "%d", &id);
         fgets(sor, sizeof(sor), fp);
-        sscanf(sor, "%d", &ujAsztal->rendelesszam);
+        sscanf(sor, "%d", &rendelesszam);
+        rendelesszam = rendelesszam-1;
+        rendelesek[id] = (Rendeles *)malloc(rendelesszam+1 * sizeof(Rendeles));
+
+
         fgets(sor, sizeof(sor), fp);
-        sscanf(sor, "%d", &rendelesek[ujAsztal->id][(ujAsztal->rendelesszam)-1].osszeg);
+        sscanf(sor, "%d", &rendelesek[id][rendelesszam].osszeg);
+        keres(asztalok, id)->foglalt = true;
+        keres(asztalok, id)->rendelesszam = rendelesszam+1;
         //Fromatum: asztalId;ferohely;mag;szel;x;y;rendelesszam;foglalt;osszeg
 
-        for (int i = 0; i < (ujAsztal->rendelesszam)-1; i++)
-        {
-            rendelesek[ujAsztal->id][i].lezarva = true;
-        }
-        
 
-        fgets(sor, sizeof(sor), fp);
-        sscanf(sor, "%d;%d;%d;%d;%d;%d;%d", &ujAsztal->ferohely, &ujAsztal->mag, &ujAsztal->szel, &ujAsztal->x, &ujAsztal->y, &ujAsztal->rendelesszam, &ujAsztal->foglalt);
+        for (int j = 0; j < rendelesszam; j++) {
+            
+            rendelesek[id][j].termekek = NULL;
+            rendelesek[id][j].lezarva = true;
+            rendelesek[id][j].osszeg = -1;
+        }
+        rendelesek[id][rendelesszam].lezarva = false;
+
 
         // Rendelések betöltése
-        fgets(sor, sizeof(sor), fp); // termekek
+        //fgets(sor, sizeof(sor), fp); // termekek
         MenuElem *elozoMenu = NULL;
+        rendelesek[id][rendelesszam].termekek = NULL;
         while (fgets(sor, sizeof(sor), fp) && sor[0] != '\n') {
             char nev[100];
             int ar;
@@ -109,25 +105,17 @@ Asztal *asztalokBetoltes(Rendeles **rendelesek, const char *fajlNev) {
                 ujMenu->kovetkezo = NULL;
 
                 if (elozoMenu == NULL) {
-                    rendelesek[ujAsztal->id][(ujAsztal->rendelesszam)-1].termekek = ujMenu;
+                    rendelesek[id][rendelesszam].termekek = ujMenu;
                 } else {
                     elozoMenu->kovetkezo = ujMenu;
                 }
                 elozoMenu = ujMenu;
             }
         }
-
-        
-        if (asztalok == NULL) {
-            asztalok = ujAsztal;
-        } else {
-            elozo->kov = ujAsztal;
-        }
-        elozo = ujAsztal;
     }
 
     fclose(fp);
-    return asztalok;
+    return rendelesek;
 }
 
 int rendelesMax(char *fajlnev){
@@ -135,7 +123,8 @@ int rendelesMax(char *fajlnev){
     if(fp == NULL){
         return 1;
     }
-    int rendelesszam = (int) fgetc(fp);
+    int rendelesszam;
+    fscanf(fp, "%d", &rendelesszam);
     fclose(fp);
     return rendelesszam;
 }

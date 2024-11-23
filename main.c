@@ -35,15 +35,28 @@ int main() {
     Alaprajz *alaprajz = alaprajzBeolvas(&asztalok);
     if(alaprajz == NULL){
         perror("Fajl beolvasasa sikertelen!");
+        menuFree(&etteremMenu);
         exit(-2);
     }
 
 
     asztalok = asztalBeolvas(alaprajz, asztalok);
     
-    Rendeles **rendelesek = rendelesekLetrehoz(len(asztalok),rendelesMax(mentesFajlnev));
+    Rendeles **rendelesek = rendelesBetoltes(asztalok, mentesFajlnev);
+    if(rendelesek == NULL){
+        printf("Nem sikerult betolteni a mentest, uj munkamenet kezdodik\n");
+        rendelesek = rendelesekLetrehoz(len(asztalok), 1);
+        if(*rendelesek == NULL){
+            perror("Nem sikerult a rendelesek letrehozasa!");
+            rendelesFree(rendelesek, asztalok);
+            asztalFree(&asztalok);
+            alaprajzFelszabadit(alaprajz);
+            menuFree(&etteremMenu);
+            
+        }
+    }
 
-    Asztal *fajlbolAsztalok = asztalokBetoltes(rendelesek, mentesFajlnev);
+    //Rendeles **fajlbolRendeles = rendelesBetoltes(asztalok, mentesFajlnev);
 
     MenuElem *jelenlegi = etteremMenu;
     printf("Az etterem menuje:\n");
@@ -84,6 +97,7 @@ int main() {
     alaprajzFelszabadit(alaprajz);
 
     asztalFree(&asztalok);
+    //asztalFree(&fajlbolAsztalok);
     menuFree(&etteremMenu);
     return 0;
 }

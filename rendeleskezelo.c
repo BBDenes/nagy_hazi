@@ -6,35 +6,26 @@
 #include "fajlkezelo.h"
 #include "rendeleskezelo.h"
 #include "debugmalloc.h"
-/*letrehozza a rendelesek tombot @return a rendelesekre mutato pointer*/
-Rendeles **rendelesekLetrehoz(int sorok, int oszlopok) {
-    Rendeles **rendelesek = (Rendeles **)malloc(sorok * sizeof(Rendeles *));
-    for (int i = 0; i < sorok; i++) {
-        rendelesek[i] = (Rendeles *)malloc(oszlopok * sizeof(Rendeles));
-        for (int j = 0; j < oszlopok; j++) {
-            rendelesek[i][j].termekek = NULL;
-            rendelesek[i][j].lezarva = false;
-            rendelesek[i][j].osszeg = 0;
-        }
-    }
-    return rendelesek;
-}
+
 
 /*Hozzaad egy rendelest a megadott asztalhoz, @return semmi*/
-bool rendelesHozzaad(Rendeles **rendelesek, int asztal, int ujMeret) {
+bool rendelesHozzaad(Rendeles **rendelesek,Asztal *asztalok, int asztalId, int ujMeret) {
     Rendeles *ujsor = (Rendeles*) malloc((ujMeret+1)*sizeof(Rendeles));
     if(ujsor == NULL) return false;
 
     for (int i = 0; i < ujMeret; i++) {
-        ujsor[i] = rendelesek[asztal][i];
+        ujsor[i] = rendelesek[asztalId][i];
+        menuFree(&(rendelesek[asztalId][i].termekek));
+        free(&(rendelesek[asztalId][i]));
     }
     ujsor[ujMeret].lezarva = false;
     ujsor[ujMeret].osszeg = 0;
     ujsor[ujMeret].termekek = NULL;
 
-
-    free(rendelesek[asztal]);
-    rendelesek[asztal] = ujsor;
+    if(keres(asztalok, asztalId)->rendelesszam != 1){
+        free(rendelesek[asztalId]);
+    }
+    rendelesek[asztalId] = ujsor;
     return true;
     
 }
@@ -82,23 +73,32 @@ void ujAsztal(Asztal *asztalok, Rendeles **rendelesek){
         in--;
         kivalasztott = keres(asztalok, in);
     }
-
-    //mivel a rendelesek tomb letrehozaskor lesz 1-1 eleme, ezert csak akkor kel hozzaadni ujat, ha a rendelesszam nem 0
-    if(kivalasztott->rendelesszam != 0){ 
-        rendelesHozzaad(rendelesek, kivalasztott->id, kivalasztott->rendelesszam);
-        kivalasztott->rendelesszam++;
-        rendelesek[in][kivalasztott->rendelesszam].osszeg = 0;
-        rendelesek[in][kivalasztott->rendelesszam].lezarva = false;
-        kivalasztott->foglalt = true;
+    kivalasztott->rendelesszam++;
+    if (rendelesHozzaad(rendelesek, asztalok, in, kivalasztott->rendelesszam-1) == false) {
+        printf("Hiba: nem sikerult rendelest hozzaadni.\n");
+        return;
     }
-    else{
-        rendelesek[in][kivalasztott->rendelesszam].osszeg = 0;
-        rendelesek[in][kivalasztott->rendelesszam].lezarva = false;
-        kivalasztott->foglalt = true;
-        kivalasztott->rendelesszam++;
 
-    }
+    // Rendelés alapértelmezett inicializálásas
+    rendelesek[in][kivalasztott->rendelesszam-1].osszeg = 0;
+    rendelesek[in][kivalasztott->rendelesszam-1].lezarva = false;
+    kivalasztott->foglalt = true;
+
     return;
+}
+
+/*letrehozza a rendelesek tombot @return a rendelesekre mutato pointer*/
+Rendeles **rendelesekLetrehoz(int sorok, int oszlopok) {
+    Rendeles **rendelesek = (Rendeles **)malloc(sorok * sizeof(Rendeles *));
+    for (int i = 0; i < sorok; i++) {
+        rendelesek[i] = (Rendeles *)malloc(oszlopok * sizeof(Rendeles));
+        for (int j = 0; j < oszlopok; j++) {
+            rendelesek[i][j].termekek = NULL;
+            rendelesek[i][j].lezarva = false;
+            rendelesek[i][j].osszeg = 0;
+        }
+    }
+    return rendelesek;
 }
 
 /*Torli a megadott sor utolso rendeleset*/
@@ -147,15 +147,15 @@ void rendelesFree(Rendeles **rendelesek, Asztal *asztalok) {
     for (int i = 0; i < meret; i++) {
         Asztal *kivalasztott = keres(asztalok, i);
         for (int j = 0; j < kivalasztott->rendelesszam; j++) {
-            printf("%d", rendelesek[i][j].osszeg);
             MenuElem *jelenlegi = rendelesek[i][j].termekek;
             while (jelenlegi != NULL) {
                 MenuElem *next = jelenlegi->kovetkezo;
                 free(jelenlegi);
                 jelenlegi = next;
             }
+            free(&rendelesek[i][j]);
         }
-        free(rendelesek[i]);
+        //free(rendelesek[i]);
     }
     free(rendelesek);
 }
@@ -246,7 +246,7 @@ void rendelesKezel(Asztal *asztalok, Rendeles **rendelesek, MenuElem *menu){
     system("cls");
     printf("Melyik asztal rendeleset szeretne kezelni? (1-%d), -1 a kilepeshez\n", len(asztalok));
     int asztalId = 0;
-    asztalId = scanf_int("");
+    asztalId = scanf_int(" ");
     if(asztalId == -1) return;
     asztalId--;
     while (keres(asztalok, asztalId) == NULL || keres(asztalok, asztalId)->rendelesszam == 0)
@@ -284,14 +284,14 @@ void rendelesKezel(Asztal *asztalok, Rendeles **rendelesek, MenuElem *menu){
             
         break;
         case 2:
-            if(!termekElvesz(rendelesek, asztalId, keres(asztalok, asztalId)->rendelesszam-1)){ //hiba eseten visszadob a menube
+            if(!termekElvesz(rendelesek, asztalId, (keres(asztalok, asztalId)->rendelesszam)-1)){ //hiba eseten visszadob a menube
                 printf("Termek elvetele nem sikerult!");
                 return;
             };
         break;
         case 3:
             nyugtaNyomtat(keres(asztalok, asztalId), rendelesek[asztalId][(keres(asztalok, asztalId)->rendelesszam)-1]);
-            rendelesek[asztalId][keres(asztalok, asztalId)->rendelesszam-1].lezarva = true;
+            rendelesek[asztalId][(keres(asztalok, asztalId)->rendelesszam)-1].lezarva = true;
             keres(asztalok, asztalId)->foglalt = false;
         break;
         
@@ -312,4 +312,21 @@ void asztalFree(Asztal **elso){
 
 }
 
+void zaras(Rendeles **rendelesek, Asztal *asztalok, char *mentesFajlnev){
+    int sorok = len(asztalok);
+    for(int i = 0; i < sorok; i++){
+        int oszlopok = keres(asztalok, i)->rendelesszam;
+        for(int j = 0; i <= oszlopok; j++){
+            if(!rendelesek[i][j].lezarva){
+                nyugtaNyomtat(keres(asztalok, i), rendelesek[i][keres(asztalok, i)->rendelesszam]);
+                rendelesek[i][keres(asztalok, i)->rendelesszam].lezarva = true;
+                keres(asztalok, i)->foglalt = false;
+            }
+        }
+    }
 
+    FILE *fp = fopen(mentesFajlnev, "w");
+    fprintf(fp, "\n");
+    fclose(fp);
+
+}
