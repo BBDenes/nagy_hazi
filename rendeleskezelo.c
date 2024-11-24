@@ -15,7 +15,7 @@ bool rendelesHozzaad(Rendeles **rendelesek,Asztal *asztalok, int asztalId, int u
 
     for (int i = 0; i < ujMeret; i++) {
         ujsor[i] = rendelesek[asztalId][i];
-        menuFree(&(rendelesek[asztalId][i].termekek));
+        //menuFree(&(rendelesek[asztalId][i].termekek));
         //free(&(rendelesek[asztalId][i]));
     }
     ujsor[ujMeret].lezarva = false;
@@ -54,11 +54,13 @@ void ujAsztal(Asztal *asztalok, Rendeles **rendelesek){
     
     int meret = len(asztalok);
 
-    //system("cls");
+    
     int in;
-    //scanf("%i", &in);
     printf("Melyik asztalt szeretne megnyitni? (1-%d), vagy -1 a visszalepeshez)\n", meret);
     in = scanf_int("");
+    while(in > meret || (in < 1 && in != -1)){
+        in = scanf_int("A megadott szam a tartmoanyon kivul esik, valasszon masikat!\n");
+    }
     if(in == -1){
         return;
     }
@@ -66,7 +68,9 @@ void ujAsztal(Asztal *asztalok, Rendeles **rendelesek){
     Asztal *kivalasztott = keres(asztalok, in);
     while(kivalasztott->foglalt){
         printf("A kivalasztott asztal mar foglalt, valasszon masikat!\n");
-        in = scanf_int("");
+        do{
+            in = scanf_int("");
+        }while(in > meret && in < 1);
         if(in == -1){
             return;
         }
@@ -90,8 +94,10 @@ void ujAsztal(Asztal *asztalok, Rendeles **rendelesek){
 /*letrehozza a rendelesek tombot @return a rendelesekre mutato pointer*/
 Rendeles **rendelesekLetrehoz(int sorok, int oszlopok) {
     Rendeles **rendelesek = (Rendeles **)malloc(sorok * sizeof(Rendeles *));
+    if(rendelesek == NULL) return NULL;
     for (int i = 0; i < sorok; i++) {
         rendelesek[i] = (Rendeles *)malloc(oszlopok * sizeof(Rendeles));
+        if(rendelesek[i] == NULL) return NULL;
         for (int j = 0; j < oszlopok; j++) {
             rendelesek[i][j].termekek = NULL;
             rendelesek[i][j].lezarva = false;
@@ -102,7 +108,7 @@ Rendeles **rendelesekLetrehoz(int sorok, int oszlopok) {
 }
 
 /*Torli a megadott sor utolso rendeleset*/
-bool rendelesElvesz(Rendeles **rendelesek, int asztal, int ujMeret){
+bool rendelesElvesz(Rendeles **rendelesek, int asztal, int ujMeret){ //nem használt függvény????
     Rendeles *ujsor = (Rendeles*) malloc((ujMeret-1)*sizeof(Rendeles));
     if(ujsor == NULL) return false;
 
@@ -212,6 +218,7 @@ bool termekHozzaad(Rendeles **rendelesek, int sor, int oszlop, MenuElem *termek)
     return true;
 }
 
+//kinyomtatja a rendeleshez tartozo nyugtat
 void nyugtaNyomtat(Asztal *asztal, Rendeles rendeles){
     time_t timeNow = time(NULL);
     struct tm tm = *localtime(&timeNow);
@@ -243,10 +250,12 @@ void nyugtaNyomtat(Asztal *asztal, Rendeles rendeles){
 
 /*Bemenetkent az asztalok es rendelesek listajat, valamint az etterem menujet keri. Modositja a megadott asztal utolso rendeleset*/
 void rendelesKezel(Asztal *asztalok, Rendeles **rendelesek, MenuElem *menu){
-    system("cls");
     printf("Melyik asztal rendeleset szeretne kezelni? (1-%d), -1 a kilepeshez\n", len(asztalok));
     int asztalId = 0;
-    asztalId = scanf_int(" ");
+    asztalId = scanf_int("");
+    while(asztalId > len(asztalok) || (asztalId < 1 && asztalId != -1)){
+        asztalId = scanf_int("A megadott szam a tartmoanyon kivul esik, valasszon masikat!\n");
+    }
     if(asztalId == -1) return;
     asztalId--;
     while (keres(asztalok, asztalId) == NULL || keres(asztalok, asztalId)->rendelesszam == 0)
@@ -254,6 +263,10 @@ void rendelesKezel(Asztal *asztalok, Rendeles **rendelesek, MenuElem *menu){
         printf("A kivalasztott asztalhoz nem tartozik rendeles, valasszon masikat!");
         printf("Melyik asztal rendeleset szeretne kezelni? (1-%d), -1 a kilepeshez\n", len(asztalok));
         asztalId = scanf_int("");
+        while(asztalId > len(asztalok) || (asztalId < 1 && asztalId != -1)){
+            asztalId = scanf_int("A megadott szam a tartmoanyon kivul esik, valasszon masikat!\n");
+        }
+        if(asztalId == -1) return;
         asztalId--;
     }
     
@@ -271,7 +284,7 @@ void rendelesKezel(Asztal *asztalok, Rendeles **rendelesek, MenuElem *menu){
             do
             {
                 printf("Irja be a termek azonositojat, ha vegzett, -1\n");
-                scanf("%d", &termekId);
+                termekId = scanf_int("");
                 if(termekId == -1) break;
                 
                 MenuElem *jelenlegi = menu;
@@ -312,6 +325,7 @@ void asztalFree(Asztal **elso){
 
 }
 
+//lezarja a megmaradt rendeleseket es kiirja a napi foglaltsagi terkepet
 void zaras(Rendeles **rendelesek, Asztal *asztalok, char *mentesFajlnev){
     int sorok = len(asztalok);
     for(int i = 0; i < sorok; i++){

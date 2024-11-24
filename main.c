@@ -6,12 +6,13 @@
 #include "rendeleskezelo.h"
 #include "mentes.h"
 #include "foglaltTerkep.h"
+#include "econio.h"
 #include "debugmalloc.h"
 
 
 int fomenu(void){
     int c;
-    //system("cls");
+    
     printf("------Fomenu - A megfelelo sorszam beirasaval lehet valasztani. ------ \n");
     printf("1. Uj asztal nyitasa. \n2. Meglevo rendeles kezelese. \n3. Korabbi rendelesek megtekintese. \n4. Zaras.\n\n");
 
@@ -70,8 +71,10 @@ int main() {
     int valasztas = fomenu();
 
     while(valasztas != -1){
+        econio_clrscr();
         switch (valasztas){
             case 1:
+            
                 ujAsztal(asztalok, rendelesek);
             break;
             case 2:

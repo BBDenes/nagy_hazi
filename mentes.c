@@ -4,17 +4,6 @@
 #include "debugmalloc.h"
 #include "rendeleskezelo.h"
 
-
-int maximum(Asztal *asztalok){
-    
-    int m = 1;
-
-    for (Asztal *mozgo = asztalok; mozgo != NULL; mozgo = mozgo->kov){
-        if(mozgo->rendelesszam > m) m = mozgo ->rendelesszam;
-    }
-    return m;
-}
-
 void asztalokMentes(Asztal *asztalok, Rendeles **rendelesek, const char *fajlNev) {
     FILE *fajl = fopen(fajlNev, "w");
     if (fajl == NULL) {
@@ -127,15 +116,4 @@ Rendeles **rendelesBetoltes(Asztal *asztalok, const char *fajlNev) {
 
     fclose(fp);
     return rendelesek;
-}
-
-int rendelesMax(char *fajlnev){
-    FILE *fp = fopen(fajlnev, "r");
-    if(fp == NULL){
-        return 1;
-    }
-    int rendelesszam;
-    fscanf(fp, "%d", &rendelesszam);
-    fclose(fp);
-    return rendelesszam;
 }

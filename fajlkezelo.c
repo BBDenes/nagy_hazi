@@ -31,7 +31,7 @@ Asztal *asztalLetrehoz(int id, int ferohely, int x, int y, int szelesseg, int ma
 /*
     Beolvassa az asztalok helyet es ferohelyszamat a fajlbol @return a kesz alaprajz, hiba eseten NULL
 */
-Alaprajz *alaprajzBeolvas(Asztal **asztalok){
+Alaprajz *alaprajzBeolvas(Asztal **asztalok){ //felesleges az asztalok paraméter??
 
     FILE *fp;
     fp = fopen("asztalok.txt", "r");
@@ -52,11 +52,9 @@ Alaprajz *alaprajzBeolvas(Asztal **asztalok){
             alaprajzMagassag++;
         }
         sorHossz++;
-        // printf("%c", c);
 
     }
     alaprajzMagassag--;
-    fseek(fp, -1L, SEEK_CUR); //mivel mar beolvasta az 1-est, ezert vissza kell menni a fajlban egyet hogy be lehessen olvasni a ferohelyeket
     
 
     rewind(fp); //vissza a fajl elejere, hogy be lehessen olvasni kulon az asztalokat
@@ -89,7 +87,6 @@ Alaprajz *alaprajzBeolvas(Asztal **asztalok){
 
 
     fclose(fp);
-    //*asztalok = asztalBeolvas(alaprajz, alaprajzMagassag, alaprajzSzelesseg, asztalok);
     Alaprajz *a = malloc(sizeof(Alaprajz));
     a->adat = alaprajz;
     a->szelesseg = alaprajzSzelesseg;
@@ -108,7 +105,7 @@ void alaprajzFelszabadit(Alaprajz *alaprajz) {
 }
 
 //kiirja az alaprajzot a konzolra
-void alaprajzKiir(char **alaprajz, int mag){
+void alaprajzKiir(char **alaprajz, int mag){ //felesleges fv??
     for(int i = 0; i < mag; i++){
         int j = 0;
         char c = alaprajz[i][0];
@@ -155,7 +152,7 @@ Asztal* asztalListaHozzaad(Asztal *asztalok, Asztal *ujAsztal){
 }
 
 /*beolvassa az asztalokat az alaprajzbol*/
-Asztal *asztalBeolvas(Alaprajz *alaprajz, Asztal *asztalok) {
+Asztal *asztalBeolvas(Alaprajz *alaprajz, Asztal *asztalok) { //felesleges az asztalok paraméter??
     int asztalId = 0;
 
     for (int i = 0; i < alaprajz->magassag; i++) {
