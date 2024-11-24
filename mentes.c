@@ -21,7 +21,17 @@ void asztalokMentes(Asztal *asztalok, Rendeles **rendelesek, const char *fajlNev
         perror("A mentes nem sikerult!");
         return;
     }
-    fprintf(fajl, "0\n"); //tetves fajlbeolvasas.....
+
+    int osszeg = 0;
+    for(Asztal *asztal = asztalok; asztal != NULL; asztal = asztal->kov){
+        if(asztal->foglalt) osszeg = 1;
+    }
+    if(osszeg > 0){
+        fprintf(fajl, "0\n");
+    }else{
+        fprintf(fajl, "1\n");
+    }
+
 
     const Asztal *aktualis = asztalok;
     while (aktualis != NULL) {
@@ -52,15 +62,16 @@ void asztalokMentes(Asztal *asztalok, Rendeles **rendelesek, const char *fajlNev
 
 Rendeles **rendelesBetoltes(Asztal *asztalok, const char *fajlNev) {
     FILE *fp = fopen(fajlNev, "r");
-    if (fp == NULL || fgetc(fp) == '\n') {      //ha nem letezik vagz ures a fajl, akkor nem 
+    char c = fgetc(fp);
+    if (fp == NULL || c == '1' || c == '\n') {      //ha nem letezik, vagy egyik asztalhoz sincs rendeles, vagz ures a fajl, akkor ujat nyit 
         return NULL;
     }
-    //rewind(fp);
     Rendeles **rendelesek = (Rendeles **)malloc(len(asztalok) * sizeof(Rendeles *));
 
     char sor[256];
     while (fgets(sor, sizeof(sor), fp)) {
         if (sor[0] == '\n') {
+
             continue; 
         }
 

@@ -4,7 +4,7 @@
 
 
     Rendeles **rendelesekLetrehoz(int sorok, int oszlopok);
-    bool rendelesHozzaad(Rendeles **rendelesek, int asztal, int ujMeret);
+    bool rendelesHozzaad(Rendeles **rendelesek,Asztal *asztalok, int asztalId, int ujMeret);
     bool rendelesElvesz(Rendeles **rendelesek, int asztal, int ujMeret);
     void rendelesekKiir(Rendeles **rendelesek, Asztal *asztalok);
     void rendelesFree(Rendeles **rendelesek, Asztal *asztalok);
@@ -16,5 +16,6 @@
     Asztal *keres(Asztal *asztalok, int index);
     void asztalFree(Asztal **elso);
     void rendelesKezel(Asztal *asztalok, Rendeles **rendelesek, MenuElem *menu);
+    void zaras(Rendeles **rendelesek, Asztal *asztalok, char *mentesFajlnev);
 
 #endif

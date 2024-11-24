@@ -5,7 +5,9 @@
 #include "fajlkezelo.h"
 #include "rendeleskezelo.h"
 #include "mentes.h"
+#include "foglaltTerkep.h"
 #include "debugmalloc.h"
+
 
 int fomenu(void){
     int c;
@@ -80,13 +82,13 @@ int main() {
                 rendelesekKiir(rendelesek, asztalok);
             break;
             case 4:
-                //zaras();
+                zaras(rendelesek, asztalok, "mentes.txt");
+                terkepKiir(alaprajz, asztalok);
             break;
             default:
                 printf("Nem megfelelo menupont!");
             break;
         }
-        //rendelesekKiir(rendelesek, asztalok);
         
         valasztas = fomenu();
     }
@@ -97,7 +99,6 @@ int main() {
     alaprajzFelszabadit(alaprajz);
 
     asztalFree(&asztalok);
-    //asztalFree(&fajlbolAsztalok);
     menuFree(&etteremMenu);
     return 0;
 }

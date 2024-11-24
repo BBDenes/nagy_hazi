@@ -16,13 +16,13 @@ bool rendelesHozzaad(Rendeles **rendelesek,Asztal *asztalok, int asztalId, int u
     for (int i = 0; i < ujMeret; i++) {
         ujsor[i] = rendelesek[asztalId][i];
         menuFree(&(rendelesek[asztalId][i].termekek));
-        free(&(rendelesek[asztalId][i]));
+        //free(&(rendelesek[asztalId][i]));
     }
     ujsor[ujMeret].lezarva = false;
     ujsor[ujMeret].osszeg = 0;
     ujsor[ujMeret].termekek = NULL;
 
-    if(keres(asztalok, asztalId)->rendelesszam != 1){
+    if (rendelesek[asztalId] != NULL) {
         free(rendelesek[asztalId]);
     }
     rendelesek[asztalId] = ujsor;
@@ -74,7 +74,7 @@ void ujAsztal(Asztal *asztalok, Rendeles **rendelesek){
         kivalasztott = keres(asztalok, in);
     }
     kivalasztott->rendelesszam++;
-    if (rendelesHozzaad(rendelesek, asztalok, in, kivalasztott->rendelesszam-1) == false) {
+    if (rendelesHozzaad(rendelesek, asztalok, in, kivalasztott->rendelesszam) == false) {
         printf("Hiba: nem sikerult rendelest hozzaadni.\n");
         return;
     }
@@ -153,9 +153,9 @@ void rendelesFree(Rendeles **rendelesek, Asztal *asztalok) {
                 free(jelenlegi);
                 jelenlegi = next;
             }
-            free(&rendelesek[i][j]);
         }
-        //free(rendelesek[i]);
+        free(rendelesek[i]);
+
     }
     free(rendelesek);
 }
@@ -315,18 +315,20 @@ void asztalFree(Asztal **elso){
 void zaras(Rendeles **rendelesek, Asztal *asztalok, char *mentesFajlnev){
     int sorok = len(asztalok);
     for(int i = 0; i < sorok; i++){
-        int oszlopok = keres(asztalok, i)->rendelesszam;
-        for(int j = 0; i <= oszlopok; j++){
-            if(!rendelesek[i][j].lezarva){
-                nyugtaNyomtat(keres(asztalok, i), rendelesek[i][keres(asztalok, i)->rendelesszam]);
-                rendelesek[i][keres(asztalok, i)->rendelesszam].lezarva = true;
-                keres(asztalok, i)->foglalt = false;
+        Asztal *asztal = keres(asztalok, i);
+        int oszlopok = asztal->rendelesszam;
+        for(int j = 0; j <= oszlopok; j++){
+            
+            if(asztal->rendelesszam !=0 && !rendelesek[i][j].lezarva){
+                nyugtaNyomtat(asztal, rendelesek[i][(asztal->rendelesszam)-1]);
+                rendelesek[i][(asztal->rendelesszam)-1].lezarva = true;
+                asztal->foglalt = false;
             }
         }
     }
 
     FILE *fp = fopen(mentesFajlnev, "w");
-    fprintf(fp, "\n");
+    fprintf(fp, "1");
     fclose(fp);
 
 }

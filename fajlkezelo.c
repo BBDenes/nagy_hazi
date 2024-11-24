@@ -221,7 +221,7 @@ bool menuBeolvas(char *fajlnev ,MenuElem **menu){
 void menuFree(MenuElem **menu){
     MenuElem *elem = *menu;
 
-        while(elem != NULL){
+    while(elem != NULL){
         MenuElem *kovetkezo = elem->kovetkezo;
         free(elem);
         elem = kovetkezo;
